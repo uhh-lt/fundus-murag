@@ -1,0 +1,19 @@
+# this config assumes that the app is started from the root of the project
+
+fundus_records_df_file: data/records.pq
+fundus_collections_df_file: data/collections.pq
+fundus_record_embeddings_df_file: data/record_embeddings.pq
+fundus_collections_embeddings_df_file: data/collection_embeddings.pq
+
+dev_mode: False
+reset_vdb_on_startup: False
+
+weaviate_host: localhost
+weaviate_http_port: 58001
+weaviate_grpc_port: 58002
+
+google_project_id: gen-lang-client-0929280396
+google_application_credentials_file: data/gen-lang-client-0929280396-6db326cbaefc.json
+
+fundus_ml_url: http://localhost:58003
+fundus_data_url: http://localhost:58004
