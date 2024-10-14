@@ -1,0 +1,14 @@
+torch>=2.0
+torchvision
+transformers>=4.45.0
+pandas>=2.0
+litserve==0.2.3
+accelerate
+sentencepiece
+protobuf
+tqdm
+loguru
+ninja
+einops
+psutil
+packaging
