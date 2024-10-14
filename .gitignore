@@ -1,3 +1,12 @@
+.env
+gen-lang-client*
+
+data/**
+notebooks/**
+docker/models_cache/
+docker/weaviate_data/
+docker/cache/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
