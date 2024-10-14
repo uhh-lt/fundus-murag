@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FUNDus Data API FastAPI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "fundus_murag.data.main:app",
+                "--reload",
+                "--reload-dir",
+                "${workspaceFolder}/src",
+                "--port",
+                "58008",
+                "--host",
+                "0.0.0.0",
+                "--log-level",
+                "debug"
+            ],
+            "cwd": "${workspaceFolder}/src",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
+                "FUNDUS_CONFIG_FILE": "../config/config.dev.yaml"
+            }
+        },
+        {
+            "name": "MESOP: Remote Attach",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": { "host": "localhost", "port": 58678 },
+            "justMyCode": false,
+        },
+        {
+            "name": "FUNDUS-ML: Remote Attach",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": { "host": "localhost", "port": 58688},
+            "justMyCode": false,
+        }
+    ]
+}
