@@ -13,8 +13,8 @@ from vertexai.generative_models import (
 )
 
 from fundus_murag.assistant.prompt import (
-    GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
-    GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
 from fundus_murag.data.dto import FundusRecordInternal
