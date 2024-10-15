@@ -31,6 +31,7 @@ services:
       - "${FUNDUS_UI_EXPOSED}:8080"
     volumes:
       - ../data:/data
+      - ./fundus-murag-ui-logs:/logs
     restart: on-failure:0
     environment:
       - FUNDUS_CONFIG_FILE=config.prod.yaml

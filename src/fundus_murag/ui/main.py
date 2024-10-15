@@ -1,6 +1,36 @@
 # import debugpy
 
 # debugpy.listen(58678)
+
+# first, setup the logger
+from loguru import logger
+import sys
+
+log_level = "DEBUG"
+log_format = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | "
+    "<level>{level: <6}</level> | "
+    "<yellow>{name}.{module}::{function}::{line}</yellow> "
+    "<b>{message}</b>"
+)
+logger.remove()
+logger.add(
+    sys.stderr,
+    level=log_level,
+    format=log_format,
+    colorize=True,
+    backtrace=True,
+    diagnose=True,
+)
+logger.add(
+    "/logs/murag_ui_{time}.log",
+    level=log_level,
+    format=log_format,
+    colorize=False,
+    backtrace=True,
+    diagnose=True,
+)
+
 import mesop as me
 
 from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
