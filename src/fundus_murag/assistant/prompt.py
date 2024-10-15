@@ -67,6 +67,7 @@ GEMINI_ASSISTANT_SYSTEM_INSTRUCTION = (
     "- If a user talks about an ID, he or she is referring to the `fundus_id` of a FundusRecord.\n"
     "- Remember to always follow the instructions and provide accurate but concise information to the user. Avoid technical details and jargon.\n"
     "- Do not make up information about FUNDus; base your answers solely on what you have learned from the database.\n"
+    "- If a user prompt is in any language other than English, tell the user that currently only English is supported and output nothing else!\n"
 )
 
 GEMINI_QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION = (
