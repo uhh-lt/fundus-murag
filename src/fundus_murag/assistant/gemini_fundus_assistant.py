@@ -46,9 +46,11 @@ class GeminiFundusAssistant(metaclass=SingletonMeta):
         self._model: GenerativeModel = self.load_model(model_name, use_tools)
         self._function_call_handler = FunctionCallHandler(auto_register_tools=use_tools)
 
+    @logger.catch
     def send_text_message(
         self, prompt: str, reset_chat: bool = False
     ) -> GenerationResponse:
+        logger.info(f"Prompt: {prompt} | Reset Chat: {reset_chat}")
         if self._chat_session is None or reset_chat:
             self.reset_chat_session()
             self._chat_session = self._model.start_chat()
@@ -63,9 +65,13 @@ class GeminiFundusAssistant(metaclass=SingletonMeta):
         self._print_text_response(response)
         return response
 
+    @logger.catch
     def send_text_image_message(
         self, text_prompt: str, base64_images: list[str], reset_chat: bool = False
     ) -> GenerationResponse:
+        logger.info(
+            f"Text Propmt: {text_prompt} | Images: {len(base64_images)} | Reset Chat: {reset_chat}"
+        )
         if self._chat_session is None or reset_chat:
             self.reset_chat_session()
             self._chat_session = self._model.start_chat()
