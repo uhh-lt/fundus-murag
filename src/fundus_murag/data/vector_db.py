@@ -471,8 +471,20 @@ class VectorDB(metaclass=SingletonMeta):
         collection_titles = self._collections_df.title.str.lower().tolist()
         collection_titles_de = self._collections_df.title_de.str.lower().tolist()
 
+        # pad all lists to the same length
+        max_len = max(
+            len(collection_names),
+            len(collection_titles),
+            len(collection_titles_de),
+        )
+        collection_names += [""] * (max_len - len(collection_names))
+        collection_titles += [""] * (max_len - len(collection_titles))
+        collection_titles_de += [""] * (max_len - len(collection_titles_de))
+
+        print(len(collection_names), len(collection_titles), len(collection_titles_de))
+
         matches = []
-        for name, title, title_de in (
+        for name, title, title_de in zip(
             collection_names,
             collection_titles,
             collection_titles_de,
