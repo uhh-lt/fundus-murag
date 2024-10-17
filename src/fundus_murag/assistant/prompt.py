@@ -54,7 +54,7 @@ GEMINI_ASSISTANT_SYSTEM_INSTRUCTION = (
     "- Never make up names or IDs to call a tool. If you need a name or ID, use a tool to look it up!.\n"
     "- Pay special attention that you copy the names and IDs correctly when calling a tool.\n"
     "- If a tool call caused an error that was due to erroneous parameters, try to correct the parameters and call the tool again.\n"
-    "- If a tool call caused an error that was not due to erroneous parameters, do not call the tool again. Instead, inform the user that an error occurred and output nothing else.\n""
+    "- If a tool call caused an error that was not due to erroneous parameters, do not call the tool again. Instead, inform the user that an error occurred and output nothing else.\n"
     #
     "# User Interaction Guidelines\n"
     #
