@@ -452,19 +452,62 @@ class VectorDB(metaclass=SingletonMeta):
 
         return self._create_fundus_collection_from_query_results(res)[0]
 
+    def _resolve_collection_name(self, collection_name: str) -> str:
+        # exact matches
+        collection_name = collection_name.strip().lower()
+        if collection_name in self._collections_df.collection_name:
+            return collection_name
+        elif collection_name in self._collections_df.title.str.lower():
+            return self._collections_df[
+                self._collections_df.title.str.lower() == collection_name
+            ].collection_name.values[0]
+        elif collection_name in self._collections_df.title_de.str.lower():
+            return self._collections_df[
+                self._collections_df.title_de.str.lower() == collection_name
+            ].collection_name.values[0]
+
+        # fuzzy matches
+        collection_names = self._collections_df.collection_name.tolist()
+        collection_titles = self._collections_df.title.str.lower().tolist()
+        collection_titles_de = self._collections_df.title_de.str.lower().tolist()
+
+        matches = []
+        for name, title, title_de in (
+            collection_names,
+            collection_titles,
+            collection_titles_de,
+        ):
+            if (
+                collection_name in name
+                or collection_name in title
+                or collection_name in title_de
+            ):
+                matches.append((name, title, title_de))
+
+        if len(matches) == 0:
+            raise KeyError(f"Collection with name '{collection_name}' not found!")
+        elif len(matches) > 1:
+            raise KeyError(
+                f"Ambigious collection name `{collection_name}`! Multiple possible collections found: {matches}"
+            )
+
+        return matches[0][0]
+
     def get_fundus_collection_by_name(
         self,
         collection_name: str,
     ) -> FundusCollection:
         """
-        Get a `FundusCollection` by its unique name.
+        Get a `FundusCollection` by its name.
 
         Args:
-            collection_name (str): The unique name of the collection.
+            collection_name (str): The name of the collection.
 
         Returns:
             `FundusCollection`: The `FundusCollection` object with the specified `collection_name`.
         """
+        collection_name = self._resolve_collection_name(collection_name)
+
         collection = self._get_fundus_collection_collection()
         res = collection.query.fetch_objects(
             filters=Filter.by_property("collection_name").equal(collection_name),
@@ -489,44 +532,32 @@ class VectorDB(metaclass=SingletonMeta):
         collection_name = self._collections_df.sample(1)["collection_name"].values[0]
         return self.get_fundus_collection_by_name(collection_name=collection_name)
 
-    def get_random_fundus_record_from_collection(
+    def get_random_fundus_records(
         self,
-        collection_name: str,
-    ) -> FundusRecord | FundusRecordInternal:
+        n: int = 1,
+        collection_name: str | None = None,
+    ) -> list[FundusRecord | FundusRecordInternal]:
         """
-        Get a random `FundusRecord` from the `FundusCollection` specified by `collection_name`.
+        Get N random `FundusRecord`s. If `collection_name` is specified, the records will be from the respective `FundusCollection`.
 
         Args:
-            collection_name (str): The unique identifier of the `FundusCollection`.
+            n (int, optional): Number of records to return. Defaults to 1.
+            collection_name (str, optional): An optional name of a `FundusCollection` specifying the records to return. If None, records will be from any `FundusCollection`. Defaults to None.
 
         Returns:
-            `FundusRecord`: A random `FundusRecord` object from the specified collection.
+            list[`FundusRecord`]: A list of N `FundusRecord` objects.
         """
-        collection_df = self._records_df[
+        records_in_collection = self._records_df[
             self._records_df["collection_name"] == collection_name
         ]
-        if len(collection_df) == 0:
+        if len(records_in_collection) == 0:
             raise KeyError(f"Collection with name '{collection_name}' not found!")
-        murag_id = collection_df.sample(1)["murag_id"].values[0]
+        murag_ids = list(records_in_collection.sample(n=n)["murag_id"].values)
 
-        return self.get_fundus_record_by_murag_id(
-            murag_id=murag_id,
-        )
-
-    def get_random_fundus_record(
-        self,
-    ) -> FundusRecord:
-        """
-        Get a random `FundusRecord` from a random `FundusCollection`.
-
-        Returns:
-            `FundusRecord`: A random `FundusRecord` object.
-        """
-        murag_id = self._records_df.sample(1)["murag_id"].values[0]
-
-        return self.get_fundus_record_by_murag_id(
-            murag_id=murag_id,
-        )
+        return [
+            self.get_fundus_record_by_murag_id(murag_id=murag_id)
+            for murag_id in murag_ids
+        ]
 
     def get_fundus_record_by_murag_id(
         self,
@@ -557,13 +588,13 @@ class VectorDB(metaclass=SingletonMeta):
         fundus_id: int,
     ) -> list[FundusRecord | FundusRecordInternal]:
         """
-        Returns all `FundusRecord`s from FUNDus that share the `fundus_id`. If a `FundusRecord` has multiple images, the records share the `fundus_id`.
+        Returns all `FundusRecord`s that share the given `fundus_id`. If a `FundusRecord` has multiple images, the records share the `fundus_id`.
 
         Args:
             fundus_id (int): An identifier for the `FundusRecord`s.
 
         Returns:
-            `FundusRecord`: The `FundusRecord` object(s) with the specified `fundus_id`s or `murad_id`.
+            `FundusRecord`: The `FundusRecord` object(s) with the specified `fundus_id`.
         """
 
         collection = self._get_fundus_record_collection()
@@ -725,7 +756,7 @@ class VectorDB(metaclass=SingletonMeta):
         top_k: int = 10,
     ) -> list[FundusRecordSemanticSearchResult]:
         """
-        Perform a similarity search of records based on an image embedding.
+        Perform a similarity search of records via their image or title embedding.
 
         Args:
             query_embedding (list[float]): The query embedding vector.
@@ -741,8 +772,10 @@ class VectorDB(metaclass=SingletonMeta):
             filters = reduce(
                 operator.or_,
                 [
-                    Filter.by_property("collection_name").equal(collection)
-                    for collection in search_in_collections
+                    Filter.by_property("collection_name").equal(
+                        self._resolve_collection_name(collection_name)
+                    )
+                    for collection_name in search_in_collections
                 ],
             )
 
@@ -813,13 +846,16 @@ class VectorDB(metaclass=SingletonMeta):
         self,
         query: str,
         *,
+        collection_name: str | None = None,
         top_k: int = 10,
     ) -> list[FundusRecord]:
         """
         Perform a lexical search for `FundusRecord`s using a query string. This searches only in the title field.
+        If `collection_name` is specified, the search will be restricted to the specified collection.
 
         Args:
             query (str): The search query.
+            collection_name (str, optional): Name of the `FundusCollection` to restrict the search. Defaults to None.
             top_k (int, optional): Number of top results to return. Defaults to 10.
 
         Returns:
@@ -828,30 +864,48 @@ class VectorDB(metaclass=SingletonMeta):
 
         return self._fundus_record_lexical_search(
             query,
+            collection_name=collection_name,
             top_k=int(top_k),
+            search_in_title=True,
         )
 
     def _fundus_record_lexical_search(
         self,
         query: str,
+        collection_name: str | None = None,
+        search_in_title: bool = True,
         top_k: int = 10,
     ) -> list[FundusRecord]:
         """
-        Perform a lexical search for `FundusRecord`s using a query string. This searches only in the title field.
+        Perform a lexical search for `FundusRecord`s using a query string.
+        Currently this searches only in the title field but can be extended to other fields in the details.
+        If `collection_name` is specified, the search will be restricted to the specified collection.
 
         Args:
             query (str): The search query.
+            collection_name (str, optional): Name of the `FundusCollection` to restrict the search. Defaults to None.
             top_k (int, optional): Number of top results to return. Defaults to 10.
 
         Returns:
             list[FundusRecord]: `FundusRecord`s matching the search query.
         """
+        if not search_in_title:
+            raise NotImplementedError(
+                "Currently only title search is supported. Please set `search_in_title=True`."
+            )
+        if collection_name is not None:
+            collection_name = self._resolve_collection_name(collection_name)
 
         collection = self._get_client().collections.get("FundusRecord")
+
+        filters = None
+        if collection_name is not None:
+            filters = Filter.by_property("collection_name").equal(collection_name)
 
         results = collection.query.bm25(
             query,
             query_properties=["title"],
+            filters=filters,
             limit=top_k,
         )
 
@@ -952,6 +1006,7 @@ class VectorDB(metaclass=SingletonMeta):
         Returns:
             int: The number of records in the collection.
         """
+        collection_name = self._resolve_collection_name(collection_name)
         return len(
             self._records_df[self._records_df["collection_name"] == collection_name]
         )
