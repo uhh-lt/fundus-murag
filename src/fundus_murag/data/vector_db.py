@@ -690,7 +690,7 @@ class VectorDB(metaclass=SingletonMeta):
             query_embedding=query_embedding,
             target_vector="record_image",
             search_in_collections=search_in_collections,
-            top_k=top_k,
+            top_k=int(top_k),
         )
 
     def _fundus_record_title_similarity_search(
@@ -714,7 +714,7 @@ class VectorDB(metaclass=SingletonMeta):
             query_embedding=query_embedding,
             target_vector="record_title",
             search_in_collections=search_in_collections,
-            top_k=top_k,
+            top_k=int(top_k),
         )
 
     def _fundus_record_similarity_search(
@@ -828,7 +828,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         return self._fundus_record_lexical_search(
             query,
-            top_k=top_k,
+            top_k=int(top_k),
         )
 
     def _fundus_record_lexical_search(
@@ -877,7 +877,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         return self._fundus_collection_lexical_search(
             query,
-            top_k=top_k,
+            top_k=int(top_k),
             search_in_collection_name=True,
             search_in_title=True,
             search_in_description=True,
