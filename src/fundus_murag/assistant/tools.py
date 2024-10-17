@@ -22,15 +22,14 @@ __IMAGE_ANALYSIS_ASSISTANT__ = GeminiImageAnalysisAssistant()
 LOOKUP_FUNCTIONS: dict[str, Callable] = {
     "get_total_number_of_fundus_collections": __VDB__.get_total_number_of_fundus_collections,
     "get_total_number_of_fundus_records": __VDB__.get_total_number_of_fundus_records,
-    "get_random_fundus_collection": __VDB__.get_random_fundus_collection,
-    "get_random_fundus_record": __VDB__.get_random_fundus_record,
-    "get_random_fundus_record_from_collection": __VDB__.get_random_fundus_record_from_collection,
+    "get_number_of_records_in_collection": __VDB__.get_number_of_records_in_collection,
+    "get_number_of_records_per_collection": __VDB__.get_number_of_records_per_collection,
     "list_all_fundus_collections": __VDB__.list_all_fundus_collections,
+    "get_random_fundus_collection": __VDB__.get_random_fundus_collection,
+    "get_random_fundus_records": __VDB__.get_random_fundus_records,
     "get_fundus_record_by_murag_id": __VDB__.get_fundus_record_by_murag_id,
     "get_fundus_records_by_fundus_id": __VDB__.get_fundus_records_by_fundus_id,
     "get_fundus_collection_by_name": __VDB__.get_fundus_collection_by_name,
-    "get_number_of_records_in_collection": __VDB__.get_number_of_records_in_collection,
-    "get_number_of_records_per_collection": __VDB__.get_number_of_records_per_collection,
 }
 
 SEARCH_FUNCTIONS: dict[str, Callable] = {
@@ -38,7 +37,7 @@ SEARCH_FUNCTIONS: dict[str, Callable] = {
     "fundus_record_title_lexical_search": __VDB__.fundus_record_title_lexical_search,
     "find_fundus_records_with_similar_image": __VDB__.find_fundus_records_with_similar_image,
     "find_fundus_records_with_images_similar_to_the_text_query": __VDB__.find_fundus_records_with_images_similar_to_the_text_query,
-    "find_fundus_records_with_titles_similar_to_the_text_query": __VDB__.find_fundus_records_with_titles_similar_to_the_text_query,
+    # "find_fundus_records_with_titles_similar_to_the_text_query": __VDB__.find_fundus_records_with_titles_similar_to_the_text_query,
 }
 
 ML_FUNCTIONS: dict[str, Callable] = {
