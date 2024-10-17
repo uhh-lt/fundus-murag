@@ -548,7 +548,7 @@ class VectorDB(metaclass=SingletonMeta):
             return_references=[],  # return no references
         )
         if len(res.objects) == 0:
-            raise KeyError(f"FundusRecord with {murag_id}={murag_id} not found!")
+            raise KeyError(f"FundusRecord with murag_id={murag_id} not found!")
 
         return self._create_fundus_record_from_query_results(res)[0]
 
@@ -799,7 +799,7 @@ class VectorDB(metaclass=SingletonMeta):
             else False,
         )
         if len(res.objects) == 0:
-            raise KeyError(f"FundusRecord with {murag_id}={murag_id} not found!")
+            raise KeyError(f"FundusRecord with murag_id={murag_id} not found!")
 
         rec = self._create_fundus_record_from_query_results(res)
         if not isinstance(rec[0], FundusRecordInternal):
