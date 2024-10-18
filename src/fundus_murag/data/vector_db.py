@@ -193,7 +193,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         collection = self._create_fundus_record_schema()
         with collection.batch.fixed_size(
-            batch_size=256, concurrent_requests=64
+            batch_size=100, concurrent_requests=16
         ) as batch:
             for _, row in tqdm(
                 records_df.iterrows(),
@@ -232,7 +232,7 @@ class VectorDB(metaclass=SingletonMeta):
                 }
 
                 record_embeddings = record_embeddings_df[
-                    record_embeddings_df["fundus_id"] == row["fundus_id"]
+                    record_embeddings_df["murag_id"] == row["murag_id"]
                 ]
                 if len(record_embeddings) == 0:
                     vector = None
@@ -455,6 +455,9 @@ class VectorDB(metaclass=SingletonMeta):
     def _resolve_collection_name(self, collection_name: str) -> str:
         # exact matches
         collection_name = collection_name.strip().lower()
+        if "collection" in collection_name:
+            collection_name = collection_name.replace("collection", "").strip()
+
         if collection_name in self._collections_df.collection_name:
             return collection_name
         elif collection_name in self._collections_df.title.str.lower():
@@ -480,8 +483,6 @@ class VectorDB(metaclass=SingletonMeta):
         collection_names += [""] * (max_len - len(collection_names))
         collection_titles += [""] * (max_len - len(collection_titles))
         collection_titles_de += [""] * (max_len - len(collection_titles_de))
-
-        print(len(collection_names), len(collection_titles), len(collection_titles_de))
 
         matches = []
         for name, title, title_de in zip(
@@ -559,12 +560,17 @@ class VectorDB(metaclass=SingletonMeta):
         Returns:
             list[`FundusRecord`]: A list of N `FundusRecord` objects.
         """
-        records_in_collection = self._records_df[
-            self._records_df["collection_name"] == collection_name
-        ]
-        if len(records_in_collection) == 0:
-            raise KeyError(f"Collection with name '{collection_name}' not found!")
-        murag_ids = list(records_in_collection.sample(n=n)["murag_id"].values)
+        if collection_name is not None:
+            cn = self._resolve_collection_name(collection_name)
+            records_in_collection = self._records_df[
+                self._records_df["collection_name"] == cn
+            ]
+            if len(records_in_collection) == 0:
+                raise KeyError(f"Collection with name '{collection_name}' not found!")
+        else:
+            records_in_collection = self._records_df
+
+        murag_ids = list(records_in_collection.sample(n=int(n))["murag_id"].values)
 
         return [
             self.get_fundus_record_by_murag_id(murag_id=murag_id)
@@ -905,6 +911,7 @@ class VectorDB(metaclass=SingletonMeta):
             raise NotImplementedError(
                 "Currently only title search is supported. Please set `search_in_title=True`."
             )
+
         if collection_name is not None:
             collection_name = self._resolve_collection_name(collection_name)
 
