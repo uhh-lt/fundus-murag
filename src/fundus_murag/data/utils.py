@@ -2,10 +2,10 @@ import base64
 import io
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 from PIL import Image
-import numpy as np
 
 
 def unicode_escape_str(s: str) -> str:
