@@ -19,6 +19,9 @@ _Note that this only works for LT and HCDS members. If you are not a member, you
 1. Navigate to the `docker` folder
 2. Run `./setup-folders.sh` to create the necessary folders for the Docker volumes
 3. Edit the `.env.example` file and save it as `.env` with the correct values
-4. Run `docker-compose pull` to pull the necessary images
-5. Run `docker-compose up -d` to start the system
-6. Run `docker-compose logs -f` to see the logs of the running containers
+
+### Starting the Docker containers
+
+1. Run `docker-compose pull` to pull the necessary images
+2. Run `docker-compose up -d` to start the system
+3. Run `docker-compose logs -f` to see the logs of the running containers
