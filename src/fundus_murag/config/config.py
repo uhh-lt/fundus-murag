@@ -24,7 +24,6 @@ class Config:
     google_project_id: str
 
     fundus_ml_url: str
-    fundus_data_url: str
 
 
 @lru_cache(maxsize=1)
