@@ -8,19 +8,19 @@ services:
       - "${FUNDUS_ML_EXPOSED}:58003"
     volumes:
       - ./models_cache:/models_cache
-      - ../src/fundus_murag/ml:/app
     restart: on-failure:0
     environment:
       - TRANSFORMERS_CACHEe=/models_cache
       - HUGGINGFACE_HUB_CACHE=/models_cache
       - TORCH_HOME=/models_cache
+      - FUNDUS_ML_DEV_MODE=0
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["1"]
-              capabilities: [gpu]
+              device_ids: [ "1" ]
+              capabilities: [ gpu ]
 
   fundus-murag-ui:
     image: p0w3r/fundus-murag-ui:latest
@@ -92,7 +92,7 @@ services:
     restart: always
     shm_size: "64gb"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:8000/v1/models"]
+      test: [ "CMD", "curl", "-f", "http://0.0.0.0:8000/v1/models" ]
       interval: 30s
       timeout: 5s
       retries: 20
@@ -101,5 +101,5 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["1"]
-              capabilities: [gpu]
+              device_ids: [ "1" ]
+              capabilities: [ gpu ]

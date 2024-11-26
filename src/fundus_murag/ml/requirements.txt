@@ -5,6 +5,7 @@ pandas>=2.0
 litserve==0.2.3
 accelerate
 sentencepiece
+loguru
 protobuf
 tqdm
 loguru
