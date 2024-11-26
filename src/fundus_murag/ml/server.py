@@ -3,17 +3,23 @@
 
 import base64
 import io
+import os
 
 import litserve as ls
 import torch
+import numpy as np
+import io
 from PIL import Image
 from transformers import BatchFeature, SiglipModel, SiglipProcessor
+from loguru import logger
 
 # we use relative imports here because this needs to run inside docker
 from dto import (
     EmbeddingsInput,
     EmbeddingsOutput,
 )
+
+FUNDUS_ML_DEV_MODE = int(os.environ.get("FUNDUS_ML_DEV_MODE", 1))
 
 MODEL_NAME = "google/siglip-so400m-patch14-384"
 TORCH_DTYPE = torch.bfloat16
@@ -22,7 +28,7 @@ TORCH_DTYPE = torch.bfloat16
 class SigLipLitAPI(ls.LitAPI):
     def setup(self, device: str):
         self.device: str = device
-        print(f"Using device: {device}")
+        logger.info(f"Using device: {device}")
         self.model = SiglipModel.from_pretrained(
             MODEL_NAME,
             attn_implementation="flash_attention_2",
@@ -102,11 +108,21 @@ class SigLipLitAPI(ls.LitAPI):
 
 
 if __name__ == "__main__":
+    if FUNDUS_ML_DEV_MODE == 0:
+        port = 8000
+        workers_per_device = 4
+    else:
+        port = np.random.randint(1000, 65000)
+        workers_per_device = 1
+
+    logger.info(f"Starting server on port {port}")
+    logger.info(f"Workers per device: {workers_per_device}")
+
     api = SigLipLitAPI()
     server = ls.LitServer(
         api,
         accelerator="cuda",
         api_path="/embed",
-        workers_per_device=4,
+        workers_per_device=workers_per_device,
     )
-    server.run(port=58003)
+    server.run(port=port)
