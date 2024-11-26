@@ -1,10 +1,25 @@
+# Un-comment the following lines to enable debugging and start the debugger from the `launch.json` configuration in VSCode.
+
 # import debugpy
 
 # debugpy.listen(58678)
 
 # first, setup the logger
-from loguru import logger
 import sys
+import os
+from pathlib import Path
+
+from loguru import logger
+
+FUNDUS_UI_DEV_MODE = int(os.environ.get("FUNDUS_UI_DEV_MODE", 1))
+
+if FUNDUS_UI_DEV_MODE == 1:
+    LOG_DIR = Path("./logs")
+    if not LOG_DIR.exists():
+        LOG_DIR.mkdir(parents=True)
+    LOG_DIR = str(LOG_DIR)
+else:
+    LOG_DIR = "/logs"
 
 log_level = "DEBUG"
 log_format = (
@@ -23,7 +38,7 @@ logger.add(
     diagnose=True,
 )
 logger.add(
-    "/logs/murag_ui_{time}.log",
+    LOG_DIR + "/murag_ui_{time}.log",
     level=log_level,
     format=log_format,
     colorize=False,

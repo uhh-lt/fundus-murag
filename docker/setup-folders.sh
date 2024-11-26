@@ -1,10 +1,16 @@
 #!/bin/bash
 echo "Creating folders for the docker volumes"
 
-if [ ! -d "weaviate-data" ]; then
-  mkdir -v weaviate-data
+if [ ! -d "weaviate_data" ]; then
+  mkdir -v weaviate_data
 else
-  echo "weaviate-data already exists"
+  echo "weaviate_data already exists"
+fi
+
+if [ ! -d "weaviate_data-dev" ]; then
+  mkdir -v weaviate_data-dev
+else
+  echo "weaviate_data-dev already exists"
 fi
 
 if [ ! -d "fundus-murag-ui-logs" ]; then

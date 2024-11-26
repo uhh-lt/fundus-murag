@@ -5,7 +5,7 @@ services:
     profiles:
       - fundusml
     ports:
-      - "${FUNDUS_ML_EXPOSED}:58003"
+      - "${FUNDUS_ML_EXPOSED}:8000"
     volumes:
       - ./models_cache:/models_cache
     restart: on-failure:0
@@ -13,7 +13,7 @@ services:
       - TRANSFORMERS_CACHEe=/models_cache
       - HUGGINGFACE_HUB_CACHE=/models_cache
       - TORCH_HOME=/models_cache
-      - FUNDUS_ML_DEV_MODE=0
+      - FUNDUS_ML_DEV_MODE=${FUNDUS_ML_DEV_MODE}
     deploy:
       resources:
         reservations:
@@ -53,6 +53,32 @@ services:
       - "${WEAVIATE_GRPC_EXPOSED}:50051"
     volumes:
       - ./weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_MODULES: ""
+      CLUSTER_HOSTNAME: "node1"
+
+  weaviate-dev:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
+    user: ${UID:-1000}:${GID:-1000}
+    profiles:
+      - weaviate-dev
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --scheme
+      - http
+    ports:
+      - "${WEAVIATE_HTTP_EXPOSED}:8080"
+      - "${WEAVIATE_GRPC_EXPOSED}:50051"
+    volumes:
+      - ./weaviate_data-dev:/var/lib/weaviate
     restart: on-failure:0
     environment:
       QUERY_DEFAULTS_LIMIT: 25
