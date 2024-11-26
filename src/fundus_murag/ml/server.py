@@ -6,12 +6,11 @@ import io
 import os
 
 import litserve as ls
-import torch
 import numpy as np
-import io
+import torch
+from loguru import logger
 from PIL import Image
 from transformers import BatchFeature, SiglipModel, SiglipProcessor
-from loguru import logger
 
 # we use relative imports here because this needs to run inside docker
 from dto import (
@@ -109,12 +108,10 @@ class SigLipLitAPI(ls.LitAPI):
 
 if __name__ == "__main__":
     if FUNDUS_ML_DEV_MODE == 0:
-        port = 8000
         workers_per_device = 4
     else:
-        port = np.random.randint(1000, 65000)
         workers_per_device = 1
-
+    port = 8000
     logger.info(f"Starting server on port {port}")
     logger.info(f"Workers per device: {workers_per_device}")
 
