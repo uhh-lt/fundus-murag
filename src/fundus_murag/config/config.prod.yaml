@@ -1,3 +1,5 @@
+# This config assumes that the app is started within the docker container
+
 fundus_records_df_file: /data/records.pq
 fundus_collections_df_file: /data/collections.pq
 fundus_record_embeddings_df_file: /data/record_embeddings.pq
@@ -14,4 +16,3 @@ google_project_id: gen-lang-client-0929280396
 google_application_credentials_file: /data/gen-lang-client-0929280396-6db326cbaefc.json
 
 fundus_ml_url: http://fundus-murag-ml:58003
-fundus_data_url: http://fundus-data:58004
