@@ -22,9 +22,9 @@ _Note that this only works for LT and HCDS members. If you are not a member, you
 
 ### Starting the Docker containers
 
-1. Run `docker-compose pull` to pull the necessary images
-2. Run `docker-compose up -d` to start the system
-3. Run `docker-compose logs -f` to see the logs of the running containers
+1. Run `docker compose pull` to pull the necessary images
+2. Run `docker compose up -d` to start the system
+3. Run `docker compose logs -f` to see the logs of the running containers
 
 ## Starting the system in Development Mode
 
@@ -53,7 +53,7 @@ You only need to do this if you want to run the ML service locally, e.g., to cha
 
 1. Navigate to the `docker` folder
 2. (Optional) If you run the ML service in development mode, remove the `fundusml` profile from the `.env.dev`
-3. Run `docker-compose --env-file .env.dev up` in a `tmux` or similar shell to start the dev containers (i.e., Weaviate)
+3. Run `docker compose --env-file .env.dev up` in a `tmux` or similar shell to start the dev containers (i.e., Weaviate)
 4. Run `curl http://localhost:<YOUR_FUNDUS_ML_EXPOSED_PORT>/embed` to check whether the FUNDus ML Service is up and running. This should print sth. like `{"detail":"Method Not Allowed"}`
 
 ### Starting the FUNDus MuRAG Application for Development
