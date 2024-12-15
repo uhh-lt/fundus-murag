@@ -7,6 +7,8 @@ import requests
 if TYPE_CHECKING:
     import torch
 
+from loguru import logger
+
 from fundus_murag.ml.dto import EmbeddingsInput, EmbeddingsOutput
 from fundus_murag.singleton_meta import SingletonMeta
 
@@ -22,13 +24,17 @@ class FundusMLClient(metaclass=SingletonMeta):
             self._fundus_ml_url = config.fundus_ml_url
         self._wait_for_ready()
 
-    def _wait_for_ready(self, s: int = 30) -> None:
+    def _wait_for_ready(self, s: int = 60, sleep_t: int = 3) -> None:
         while s > 0:
             if self._is_ready():
+                logger.info(f"Fundus ML is ready at {self._fundus_ml_url}!")
                 return
-            time.sleep(1)
-            s -= 1
-        raise TimeoutError("Fundus ML is not ready!")
+            logger.info(
+                f"Waiting {sleep_t}s for Fundus ML to be ready at {self._fundus_ml_url}..."
+            )
+            time.sleep(sleep_t)
+            s -= sleep_t
+        raise TimeoutError(f"Fundus ML is not ready at {self._fundus_ml_url}!")
 
     def _is_ready(self) -> bool:
         try:
