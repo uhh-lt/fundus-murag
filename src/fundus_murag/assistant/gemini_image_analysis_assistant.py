@@ -1,26 +1,25 @@
+import json
+from typing import Literal
+
 import google.generativeai as genai
-from vertexai.generative_models import (
-    GenerationConfig,
-    GenerativeModel,
-    GenerationResponse,
-    Part,
-)
 import vertexai
 from google.oauth2.service_account import Credentials
 from loguru import logger
+from vertexai.generative_models import (
+    GenerationConfig,
+    GenerationResponse,
+    GenerativeModel,
+    Part,
+)
 
 from fundus_murag.assistant.prompt import (
-    GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
     GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
+    GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
-from typing import Literal
-
 from fundus_murag.data.dto import FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.singleton_meta import SingletonMeta
-
-import json
 
 GEMINI_GENERATION_CONFIG = GenerationConfig(
     candidate_count=1,

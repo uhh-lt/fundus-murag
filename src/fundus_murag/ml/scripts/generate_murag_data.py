@@ -9,18 +9,17 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import requests
 from fire import Fire
-from fundus_murag.ml.dto import (
-    EmbeddingsOutput,
-    ImageInput,
-    TextInput,
-)
-from fundus_murag.ml.client import FundusMLClient
 from pandas import json_normalize
 from PIL import Image
 from pydantic import BaseModel, Field
 from tqdm.auto import tqdm
+
+from fundus_murag.ml.client import FundusMLClient
+from fundus_murag.ml.dto import (
+    EmbeddingsOutput,
+    ImageInput,
+)
 
 
 @unique

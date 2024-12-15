@@ -1,18 +1,18 @@
+from typing import Callable
+
 from vertexai.generative_models import (
     FunctionDeclaration,
     Tool,
 )
 
-from typing import Callable
-
 from fundus_murag.assistant.gemini_image_analysis_assistant import (
     GeminiImageAnalysisAssistant,
 )
-from fundus_murag.data.vector_db import VectorDB
-from fundus_murag.ml.client import FundusMLClient
 from fundus_murag.assistant.gemini_query_rewriter_assistant import (
     GeminiQueryRewriterAssistant,
 )
+from fundus_murag.data.vector_db import VectorDB
+from fundus_murag.ml.client import FundusMLClient
 
 __VDB__ = VectorDB()
 __ML_CLIENT__ = FundusMLClient()
