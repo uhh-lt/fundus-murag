@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
 from typing import Annotated, Literal
+
 from annotated_types import Len
+from pydantic import BaseModel, Field
 
 MAX_BATCH_SIZE: int = 128
 

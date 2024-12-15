@@ -1,11 +1,11 @@
+import uvicorn
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fundus_murag.data.routers import general, search, lookup
-from fundus_murag.data.setup import lifespan
+from fastapi.routing import APIRoute
 
-import uvicorn
+from fundus_murag.data.routers import general, lookup, search
+from fundus_murag.data.setup import lifespan
 
 
 # custom method to generate OpenApi function names

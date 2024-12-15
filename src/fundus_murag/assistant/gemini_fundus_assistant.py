@@ -1,20 +1,20 @@
 import google.generativeai as genai
 import pandas as pd
 import srsly
-from vertexai.generative_models import (
-    ChatSession,
-    GenerationConfig,
-    GenerativeModel,
-    GenerationResponse,
-    Part,
-)
 import vertexai
 from google.oauth2.service_account import Credentials
 from loguru import logger
+from vertexai.generative_models import (
+    ChatSession,
+    GenerationConfig,
+    GenerationResponse,
+    GenerativeModel,
+    Part,
+)
 
 from fundus_murag.assistant.dto import ChatMessage
-from fundus_murag.assistant.prompt import GEMINI_ASSISTANT_SYSTEM_INSTRUCTION
 from fundus_murag.assistant.function_call_handler import FunctionCallHandler
+from fundus_murag.assistant.prompt import GEMINI_ASSISTANT_SYSTEM_INSTRUCTION
 from fundus_murag.assistant.tools import (
     FUNDUS_TOOL,
 )

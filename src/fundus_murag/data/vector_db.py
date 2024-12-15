@@ -7,7 +7,7 @@ import pandas as pd
 import weaviate
 from loguru import logger
 from tqdm import tqdm
-from weaviate.classes.query import Filter, MetadataQuery, QueryReference, QueryNested
+from weaviate.classes.query import Filter, MetadataQuery, QueryNested, QueryReference
 
 from fundus_murag.assistant.gemini_query_rewriter_assistant import (
     GeminiQueryRewriterAssistant,

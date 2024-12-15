@@ -1,20 +1,20 @@
+from typing import Literal
+
 import google.generativeai as genai
-from vertexai.generative_models import (
-    GenerationConfig,
-    GenerativeModel,
-    GenerationResponse,
-)
 import vertexai
 from google.oauth2.service_account import Credentials
 from loguru import logger
+from vertexai.generative_models import (
+    GenerationConfig,
+    GenerationResponse,
+    GenerativeModel,
+)
 
 from fundus_murag.assistant.prompt import (
     GEMINI_QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION,
     GEMINI_QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
-from typing import Literal
-
 from fundus_murag.singleton_meta import SingletonMeta
 
 GEMINI_GENERATION_CONFIG = GenerationConfig(

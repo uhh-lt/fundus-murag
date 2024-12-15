@@ -6,17 +6,16 @@ import io
 import os
 
 import litserve as ls
-import numpy as np
 import torch
-from loguru import logger
-from PIL import Image
-from transformers import BatchFeature, SiglipModel, SiglipProcessor
 
 # we use relative imports here because this needs to run inside docker
 from dto import (
     EmbeddingsInput,
     EmbeddingsOutput,
 )
+from loguru import logger
+from PIL import Image
+from transformers import BatchFeature, SiglipModel, SiglipProcessor
 
 FUNDUS_ML_DEV_MODE = int(os.environ.get("FUNDUS_ML_DEV_MODE", 1))
 
