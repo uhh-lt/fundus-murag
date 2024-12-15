@@ -15,8 +15,8 @@ from tqdm.auto import tqdm
 from fundus_murag.data.utils import read_image_bytes
 from fundus_murag.ml.client import FundusMLClient
 from fundus_murag.ml.dto import (
-    EmbeddingsOutput,
     EmbeddingsInput,
+    EmbeddingsOutput,
 )
 
 

@@ -1,5 +1,5 @@
 import time
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import requests

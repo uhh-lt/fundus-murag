@@ -1,9 +1,9 @@
 from weaviate.classes.config import (
-    Property,
-    DataType,
-    Tokenization,
-    ReferenceProperty,
     Configure,
+    DataType,
+    Property,
+    ReferenceProperty,
+    Tokenization,
     VectorDistances,
 )
 
