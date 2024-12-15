@@ -124,6 +124,19 @@ def start_page():
                     ),
                 )
                 me.divider()
+                me.link(
+                    text="Or click here to browse FUNDus! via 🔎 Cross-Modal Semantic Similarity Search!",
+                    open_in_new_tab=True,
+                    url="https://fundus-ir.ltdemos.informatik.uni-hamburg.de/",
+                    style=me.Style(
+                        font_size=14,
+                        margin=me.Margin.symmetric(vertical=16),
+                        text_decoration="none",
+                        color=me.theme_var("on-surface"),
+                        cursor="pointer",
+                    ),
+                )
+                me.divider()
                 me.text(
                     "🚧 This is an early beta Proof-of-Concept version! So be prepared, you will encouter 🐛 🪲 🪳 🐞 🕷️ 🐜",
                     type="subtitle-1",
