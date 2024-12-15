@@ -35,6 +35,7 @@ services:
     restart: on-failure:0
     environment:
       - FUNDUS_CONFIG_FILE=config.prod.yaml
+      - FUNDUS_UI_DEV_MODE=${FUNDUS_UI_DEV_MODE}
 
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
