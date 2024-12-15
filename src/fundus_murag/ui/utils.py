@@ -1,8 +1,9 @@
 import re
 from re import Pattern
+
 from fundus_murag.assistant.prompt import (
-    FUNDUS_RECORD_RENDER_TAG_OPEN,
     FUNDUS_COLLECTION_RENDER_TAG_OPEN,
+    FUNDUS_RECORD_RENDER_TAG_OPEN,
     RENDER_TAG_CLOSE,
     RENDER_TAG_MURAG_ID_ATTRIBUTE,
 )

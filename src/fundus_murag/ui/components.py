@@ -1,9 +1,11 @@
 import mesop as me
 
 from fundus_murag.assistant.dto import ChatMessage
+from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
 from fundus_murag.data.dto import FundusCollection, FundusRecordInternal
-from fundus_murag.ui.state import AppState, reset_app_state
+from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.ui.config import APP_NAME, EXAMPLES
+from fundus_murag.ui.state import AppState, reset_app_state
 from fundus_murag.ui.utils import (
     contains_fundus_collection_render_tag,
     contains_fundus_record_render_tag,
@@ -12,8 +14,6 @@ from fundus_murag.ui.utils import (
     replace_fundus_collection_render_tag,
     replace_fundus_record_render_tag,
 )
-from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
-from fundus_murag.data.vector_db import VectorDB
 
 __VDB__ = VectorDB()
 

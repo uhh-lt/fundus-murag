@@ -1,12 +1,13 @@
 from typing import Callable
-from fastapi.encoders import jsonable_encoder
+
 import srsly
+from fastapi.encoders import jsonable_encoder
 
 from fundus_murag.assistant.tools import (
-    LOOKUP_FUNCTIONS,
-    SEARCH_FUNCTIONS,
-    ML_FUNCTIONS,
     IMAGE_ANALYSIS_FUNCTIONS,
+    LOOKUP_FUNCTIONS,
+    ML_FUNCTIONS,
+    SEARCH_FUNCTIONS,
 )
 
 

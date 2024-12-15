@@ -5,8 +5,8 @@
 # debugpy.listen(58678)
 
 # first, setup the logger
-import sys
 import os
+import sys
 from pathlib import Path
 
 from loguru import logger

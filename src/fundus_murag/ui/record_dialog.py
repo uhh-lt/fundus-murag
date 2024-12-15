@@ -1,5 +1,4 @@
 import mesop as me
-import srsly
 
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.ui.config import APP_WIDTH
