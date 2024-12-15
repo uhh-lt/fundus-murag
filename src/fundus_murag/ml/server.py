@@ -107,9 +107,10 @@ class SigLipLitAPI(ls.LitAPI):
 
 if __name__ == "__main__":
     if FUNDUS_ML_DEV_MODE == 0:
-        workers_per_device = 4
+        workers_per_device = 2
     else:
         workers_per_device = 1
+
     port = 8000
     logger.info(f"Starting server on port {port}")
     logger.info(f"Workers per device: {workers_per_device}")
