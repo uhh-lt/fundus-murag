@@ -1,3 +1,5 @@
+# ruff: noqa: E402  (= ignore imports not at the top of file)
+# noqa: E402 (= ignore imports not at the top of file)
 # Un-comment the following lines to enable debugging and start the debugger from the `launch.json` configuration in VSCode.
 
 # import debugpy
@@ -45,7 +47,6 @@ logger.add(
     backtrace=True,
     diagnose=True,
 )
-
 import mesop as me
 
 from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
