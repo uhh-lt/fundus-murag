@@ -13,13 +13,17 @@ from vertexai.generative_models import (
 )
 
 from fundus_murag.assistant.prompt import (
-    GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
-    GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
 from fundus_murag.data.dto import FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.singleton_meta import SingletonMeta
+
+from fundus_murag.assistant.base_image_analysis_assistant import BaseImageAnalysisAssistant 
+
+import json
 
 GEMINI_GENERATION_CONFIG = GenerationConfig(
     candidate_count=1,
@@ -32,7 +36,7 @@ GEMINI_GENERATION_CONFIG = GenerationConfig(
 MODEL_NAME = "gemini-1.5-pro-002"
 
 
-class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
+class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=SingletonMeta):
     def __init__(self, model_name: str | None = None):
         if model_name is None:
             model_name = MODEL_NAME
@@ -62,9 +66,9 @@ class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
             model_name = model_name.split("/")[-1]
 
         if type == "vqa":
-            system_instruction = GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
+            system_instruction = IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
         elif type == "ic":
-            system_instruction = GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
+            system_instruction = IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
         else:
             raise NotImplementedError(f"Unsupported model type: {type}")
 
@@ -158,7 +162,8 @@ class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
 
         return Part.from_text(prompt)
 
-    def _get_text_response(self, response: GenerationResponse) -> str:
+    @staticmethod
+    def _get_text_response(response: GenerationResponse) -> str:
         try:
             return response.candidates[0].text
         except Exception:
