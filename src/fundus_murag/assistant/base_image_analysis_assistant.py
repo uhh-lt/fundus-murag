@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Literal
+import json
 
 from fundus_murag.data.dto import FundusRecordInternal
 
@@ -22,14 +23,20 @@ class BaseImageAnalysisAssistant(ABC):
         pass
 
     @staticmethod
-    @abstractmethod
-    def _generate_vqa_prompt(record: FundusRecordInternal, question: str):
-        pass
+    def generate_vqa_prompt(record: FundusRecordInternal, question: str) -> str:
+        prompt = "# Question\n"
+        prompt += f"'''\n{question}\n'''\n"
+        prompt += "# Metadata as JSON\n"
+        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
+        return prompt
 
     @staticmethod
-    @abstractmethod
-    def _generate_image_captioning_prompt(record: FundusRecordInternal,bdetailed: bool = False):
-        pass
+    def generate_image_captioning_prompt(record: FundusRecordInternal, detailed: bool = False) -> str:
+        style = "detailed" if detailed else "concise"
+        prompt = f"Generate a {style} caption for the image considering the metadata.\n"
+        prompt += "# Metadata as JSON\n"
+        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
+        return prompt
 
     @staticmethod
     @abstractmethod
