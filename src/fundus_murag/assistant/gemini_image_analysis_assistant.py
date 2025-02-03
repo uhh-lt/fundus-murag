@@ -139,28 +139,14 @@ class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
             return msg
 
     @staticmethod
-    def _generate_image_captioning_prompt(
-        record: FundusRecordInternal,
-        detailled: bool = False,
-    ) -> Part:
-        prompt = f"Generate a {'detailed' if detailled else 'concise'} caption "
-        prompt += "for the image considering the following metadata.\n"
-        prompt += "# Metadata as JSON\n"
-        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
-
-        return Part.from_text(prompt)
+    def _generate_vqa_prompt(record: FundusRecordInternal, question: str) -> Part:
+        prompt_str = BaseImageAnalysisAssistant.generate_vqa_prompt(record, question)
+        return Part.from_text(prompt_str)
 
     @staticmethod
-    def _generate_vqa_prompt(
-        record: FundusRecordInternal,
-        question: str,
-    ) -> Part:
-        prompt = "# Question\n"
-        prompt += f"'''\n{question}\n'''\n"
-        prompt += "# Metadata as JSON\n"
-        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
-
-        return Part.from_text(prompt)
+    def _generate_image_captioning_prompt(record: FundusRecordInternal, detailed: bool = False) -> Part:
+        prompt_str = BaseImageAnalysisAssistant.generate_image_captioning_prompt(record, detailed)
+        return Part.from_text(prompt_str)
 
     @staticmethod
     def _get_text_response(response: GenerationResponse) -> str:
