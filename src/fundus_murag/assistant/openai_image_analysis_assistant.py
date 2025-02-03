@@ -1,8 +1,7 @@
 import openai
 from loguru import logger
-import base64
 import json
-from typing import Literal
+from typing import TypedDict, Literal
 
 from fundus_murag.assistant.prompt import (
     IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
@@ -16,9 +15,19 @@ from fundus_murag.singleton_meta import SingletonMeta
 from base_image_analysis_assistant import BaseImageAnalysisAssistant
 
 OPENAI_MODEL = "gpt-4o-mini"
-OPENAI_MAX_TOKENS = 2048
-TEMPERATURE = 1.0
 
+class ModelConfig(TypedDict):
+    model_name: str
+    system_instruction: str
+    temperature: float
+    max_tokens: int
+
+BASE_MODEL_CONFIG: ModelConfig = {
+    "model_name": "",
+    "system_instruction": "",
+    "temperature": 1.0,
+    "max_tokens": 2048,
+}
 
 class OpenAIImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=SingletonMeta):
 
@@ -30,23 +39,22 @@ class OpenAIImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
         # defult unless we have another model
         self._default_model_name = model_name if model_name else OPENAI_MODEL
 
-        self._vqa_model = self._load_model(self._default_model_name, "vqa")
-        self._ic_model = self._load_model(self._default_model_name, "ic")
+        self._vqa_model: ModelConfig = self._load_model(self._default_model_name, "vqa")
+        self._ic_model: ModelConfig = self._load_model(self._default_model_name, "ic")
 
-    def _load_model(self, model_name: str, model_type: Literal["vqa", "ic"]):
+    def _load_model(self, model_name: str, model_type: Literal["vqa", "ic"]) -> ModelConfig:
         if model_type == "vqa":
             system_instruction = IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
         elif model_type == "ic":
             system_instruction = IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
+        
+        model_config = BASE_MODEL_CONFIG.copy()
+        model_config["model_name"] = model_name
+        model_config["system_instruction"] = system_instruction
 
-        return {
-            "model_name": model_name,
-            "system_instruction": system_instruction,
-            "temperature": TEMPERATURE,
-            "max_tokens": OPENAI_MAX_TOKENS,
-        }
+        return model_config
 
     def answer_question_about_fundus_record_image(self, question: str, murag_id: str) -> str:
         
@@ -142,23 +150,11 @@ class OpenAIImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
 
     @staticmethod
     def _generate_vqa_prompt(record: FundusRecordInternal, question: str) -> str:
-        prompt = "# Question\n"
-        prompt += f"'''\n{question}\n'''\n"
-        prompt += "# Metadata as JSON\n"
-        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
-        return prompt
+        return BaseImageAnalysisAssistant.generate_vqa_prompt(record, question)
 
     @staticmethod
-    def _generate_image_captioning_prompt(
-        record: FundusRecordInternal, detailed: bool = False
-    ) -> str:
-        style = "detailed" if detailed else "concise"
-        prompt = (
-            f"Generate a {style} caption for the image considering the metadata.\n"
-            "# Metadata as JSON\n"
-            f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
-        )
-        return prompt
+    def _generate_image_captioning_prompt(record: FundusRecordInternal, detailed: bool = False) -> str:
+        return BaseImageAnalysisAssistant.generate_image_captioning_prompt(record, detailed)
 
     @staticmethod
     def _get_text_response(response) -> str:
@@ -166,5 +162,3 @@ class OpenAIImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
             return response.choices[0].message.content
         except (AttributeError, IndexError) as e:
             raise ValueError(f"No text response found in OpenAI response. Error: {e}")
-
-
