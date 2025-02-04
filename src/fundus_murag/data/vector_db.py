@@ -103,7 +103,7 @@ class VectorDB(metaclass=SingletonMeta):
     def is_initialized(self) -> bool:
         return self._get_client().collections.exists(
             FUNDUS_RECORD_SCHEMA_NAME
-        ) and self._get_client().collections.exists(FUNDUS_RECORD_SCHEMA_NAME)
+        ) and self._get_client().collections.exists(FUNDUS_COLLECTION_SCHEMA_NAME)
 
     def _create_fundus_record_schema(self) -> weaviate.collections.Collection:
         return self._get_client().collections.create(
