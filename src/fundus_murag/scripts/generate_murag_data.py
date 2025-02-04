@@ -111,7 +111,8 @@ def _generate_collection_description_embeddings(
         total=len(collections_df),
         desc="Collection Description Embeddings",
     ):
-        data.collection_name.append(row["fundus_id"])
+        data.collection_name.append(row["collection_name"])
+
         data.murag_id.append(row["murag_id"])
         data.embedding_type.append(EmbeddingType.TEXT)
         data.embedding_name.append(EmbeddingName.COLLECTION_DESCRIPTION)
@@ -268,10 +269,11 @@ def _generate_collection_embeddings(
         fundus_ml_url,
     )
     embeddings = title_embeddings
-    # description_embeddings = _generate_collection_description_embeddings(
-    #     collections_df, fundus_ml_url
-    # )
-    # embeddings = pd.concat([title_embeddings, description_embeddings])
+
+    description_embeddings = _generate_collection_description_embeddings(
+        collections_df, fundus_ml_url
+    )
+    embeddings = pd.concat([title_embeddings, description_embeddings])
 
     return embeddings
 
