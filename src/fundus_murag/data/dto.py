@@ -185,3 +185,17 @@ class FundusRecordInternalSemanticSearchResult(FundusRecordInternal):
 
     certainty: float
     distance: float
+
+
+class FundusCollectionSemanticSearchResult(FundusCollection):
+    """
+    A `FundusCollectionSemanticSearchResult` represents a semantic search result for a `FundusCollection`,
+    including additional details such as certainty and distance scores.
+
+    Attributes:
+        certainty (float): The certainty score of the search result.
+        distance (float): The distance between the query and the search result.
+    """
+
+    certainty: float
+    distance: float
