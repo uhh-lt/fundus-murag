@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from fundus_murag.data.dto import (
     EmbeddingQuery,
     FundusCollection,
+    FundusCollectionSemanticSearchResult,
     FundusRecordSemanticSearchResult,
     LexicalSearchQuery,
 )
@@ -51,6 +52,42 @@ def fundus_collection_lexical_search(query: LexicalSearchQuery):
             search_in_description=query.search_in_description,
             search_in_german_title=query.search_in_german_title,
             search_in_german_description=query.search_in_german_description,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/collections/title_description_similarity_search",
+    response_model=list[FundusCollectionSemanticSearchResult],  # Updated response model
+    summary="Perform a semantic similarity search on `FundusCollection`s based on their title description.",
+    tags=["search"],
+)
+def fundus_collection_description_similarity_search(query: EmbeddingQuery):
+    try:
+        # query_embedding = np.array(query.query_embedding)
+        query_embedding = list(query.query_embedding)
+        return vdb.fundus_collection_description_similarity_search(
+            query_embedding=query_embedding,
+            top_k=query.top_k,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/collections/title_similarity_search",
+    response_model=list[FundusCollectionSemanticSearchResult],  # Updated response model
+    summary="Perform a semantic similarity search on `FundusCollection`s based on their title.",
+    tags=["search"],
+)
+def fundus_collection_title_similarity_search(query: EmbeddingQuery):
+    try:
+        # query_embedding = np.array(query.query_embedding)
+        query_embedding = list(query.query_embedding)
+        return vdb.fundus_collection_title_similarity_search(
+            query_embedding=query_embedding,
+            top_k=query.top_k,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
