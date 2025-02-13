@@ -113,10 +113,25 @@ FUNDUS_RECORD_SCHEMA_REFS = [
 
 
 FUNDUS_COLLECTION_SCHEMA_NAME = "FundusCollection"
-FUNDUS_COLLECTION_SCHEMA_VECTORIZER = Configure.Vectorizer.none()
-FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG = Configure.VectorIndex.hnsw(
-    distance_metric=VectorDistances.COSINE
-)
+FUNDUS_COLLECTION_SCHEMA_VECTORIZER = [
+    Configure.NamedVectors.none(
+        name="collection_title",
+        vector_index_config=Configure.VectorIndex.hnsw(
+            distance_metric=VectorDistances.COSINE
+        ),
+    ),
+    Configure.NamedVectors.none(
+        name="collection_description",
+        vector_index_config=Configure.VectorIndex.hnsw(
+            distance_metric=VectorDistances.COSINE
+        ),
+    ),
+]
+
+# it is already set in FUNDUS_COLLECTION_SCHEMA_VECTORIZER
+# FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG = Configure.VectorIndex.hnsw(
+#     distance_metric=VectorDistances.COSINE
+# )
 FUNDUS_COLLECTION_SCHEMA_PROPS = [
     Property(
         name="murag_id",
