@@ -58,7 +58,7 @@ def fundus_collection_lexical_search(query: LexicalSearchQuery):
 
 
 @router.post(
-    "/collections/title_description_similarity_search",
+    "/collections/description_similarity_search",
     response_model=list[FundusCollectionSemanticSearchResult],  # Updated response model
     summary="Perform a semantic similarity search on `FundusCollection`s based on their title description.",
     tags=["search"],
