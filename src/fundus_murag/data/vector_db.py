@@ -15,7 +15,7 @@ from fundus_murag.assistant.gemini_query_rewriter_assistant import (
 from fundus_murag.config.config import load_config
 from fundus_murag.data.config import (
     FUNDUS_COLLECTION_SCHEMA_NAME,
-    FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG,
+    # FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG, #it is already set in FUNDUS_COLLECTION_SCHEMA_VECTORIZER
     FUNDUS_COLLECTION_SCHEMA_VECTORIZER,
     FUNDUS_RECORD_SCHEMA_NAME,
     FUNDUS_RECORD_SCHEMA_REFS,
@@ -121,7 +121,7 @@ class VectorDB(metaclass=SingletonMeta):
         return self._get_client().collections.create(
             name=FUNDUS_COLLECTION_SCHEMA_NAME,
             # properties=FUNDUS_COLLECTION_SCHEMA_PROPS, # comment out for auto schema creation
-            vector_index_config=FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG,
+            # vector_index_config=FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG, #it is already set in FUNDUS_COLLECTION_SCHEMA_VECTORIZER
             vectorizer_config=FUNDUS_COLLECTION_SCHEMA_VECTORIZER,
         )
 
