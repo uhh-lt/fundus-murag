@@ -23,6 +23,7 @@ from fundus_murag.data.config import (
 )
 from fundus_murag.data.dto import (
     FundusCollection,
+    FundusCollectionSemanticSearchResult,
     FundusRecord,
     FundusRecordInternal,
     FundusRecordSemanticSearchResult,
@@ -1008,6 +1009,82 @@ class VectorDB(metaclass=SingletonMeta):
         )
 
         return self._create_fundus_collection_from_query_results(res)
+
+    def fundus_collection_description_similarity_search(
+        self,
+        query_embedding: list[float],
+        top_k: int = 10,
+    ) -> list[FundusCollectionSemanticSearchResult]:
+        """
+        Perform a similarity search of `FundusCollection`s based on their title embedding.
+
+        Args:
+            query_embedding (list[float]): The query embedding vector.
+            top_k (int, optional): Number of top results to return. Defaults to 10.
+
+        Returns:
+            list[FundusCollection]: `FundusCollection`s search results with similarity scores.
+        """
+        return self._fundus_collection_similarity_search(
+            query_embedding=query_embedding,
+            target_vector="collection_description",
+            top_k=int(top_k),
+        )
+
+    def fundus_collection_title_similarity_search(
+        self,
+        query_embedding: list[float],
+        top_k: int = 10,
+    ) -> list[FundusCollectionSemanticSearchResult]:
+        """
+        Perform a similarity search of `FundusCollection`s based on their title embedding.
+
+        Args:
+            query_embedding (list[float]): The query embedding vector.
+            top_k (int, optional): Number of top results to return. Defaults to 10.
+
+        Returns:
+            list[FundusCollection]: `FundusCollection`s search results with similarity scores.
+        """
+        return self._fundus_collection_similarity_search(
+            query_embedding=query_embedding,
+            target_vector="collection_title",
+            top_k=int(top_k),
+        )
+
+    def _fundus_collection_similarity_search(
+        self,
+        query_embedding: list[float],
+        target_vector: Literal["collection_title", "collection_description"],
+        top_k: int = 10,
+    ) -> list[FundusCollectionSemanticSearchResult]:
+        """
+        Perform a similarity search of `FundusCollection`s based on their title embedding.
+        Returns structured results with certainty and distance scores.
+        """
+        collection = self._get_client().collections.get("FundusCollection")
+
+        results = collection.query.near_vector(
+            query_embedding,
+            target_vector=target_vector,
+            limit=int(top_k),
+            return_metadata=MetadataQuery(certainty=True, distance=True),
+        )
+
+        collections = self._create_fundus_collection_from_query_results(results)
+
+        # Convert results to FundusCollectionSemanticSearchResult with certainty & distance
+        simsearch_results = []
+        for collection, res_obj in zip(collections, results.objects):
+            res = FundusCollectionSemanticSearchResult(
+                **collection.model_dump(),
+                distance=res_obj.metadata.distance,  # type: ignore
+                certainty=res_obj.metadata.certainty,  # type: ignore
+            )
+
+            simsearch_results.append(res)
+
+        return simsearch_results
 
     def get_number_of_records_per_collection(self) -> dict[str, int]:
         """
