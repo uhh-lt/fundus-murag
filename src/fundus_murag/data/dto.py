@@ -25,6 +25,21 @@ class LexicalSearchQuery(BaseModel):
     search_in_german_description: bool = True
 
 
+class RecordLexicalSearchQuery(BaseModel):
+    """
+    A `RecordLexicalSearchQuery` represents a query for a lexical search of `FundusRecord`s by title.
+
+    Attributes:
+        query (str): The search query.
+        top_k (int, optional): Number of top results to return. Defaults to 10.
+        collection_name (str, optional): Restrict the search to a specific collection if provided.
+    """
+
+    query: str
+    top_k: int = 10
+    collection_name: str | None = None
+
+
 class EmbeddingQuery(BaseModel):
     """
     A `EmbeddingQuery` represents a query for similarity search based on an image embedding.
