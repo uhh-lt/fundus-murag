@@ -5,8 +5,10 @@ from fundus_murag.data.dto import (
     EmbeddingQuery,
     FundusCollection,
     FundusCollectionSemanticSearchResult,
+    FundusRecord,
     FundusRecordSemanticSearchResult,
     LexicalSearchQuery,
+    RecordLexicalSearchQuery,
 )
 from fundus_murag.data.vector_db import VectorDB
 
@@ -17,6 +19,7 @@ vdb = VectorDB()
 
 @router.post(
     "/records/similarity_search",
+    # "/records/image_similarity_search",
     response_model=list[FundusRecordSemanticSearchResult],
     summary="Perform a similarity search of records based on an image embedding.",
     tags=["search"],
@@ -24,13 +27,62 @@ vdb = VectorDB()
 def fundus_record_image_similarity_search(query: EmbeddingQuery):
     try:
         query_embedding = np.array(query.query_embedding)
-        return vdb.fundus_record_image_similarity_search(
+        return vdb._fundus_record_image_similarity_search(
             query_embedding=query_embedding,
             search_in_collections=query.search_in_collections,
             top_k=query.top_k,
-            return_image=query.return_image,
-            return_resolved_collection=query.return_parent_collection,
-            return_embeddings=query.return_embeddings,
+            # return_image=query.return_image,
+            # return_resolved_collection=query.return_parent_collection,
+            # return_embeddings=query.return_embeddings,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/records/title_similarity_search",
+    response_model=list[FundusRecordSemanticSearchResult],
+    summary="Perform a similarity search of records based on a title embedding.",
+    tags=["search"],
+)
+def fundus_record_title_similarity_search(query: EmbeddingQuery):
+    """
+    Perform a similarity search of records based on a title embedding.
+    """
+    try:
+        # query_embedding = np.array(query.query_embedding)
+        query_embedding = list(query.query_embedding)
+        return vdb._fundus_record_title_similarity_search(
+            query_embedding=query_embedding,
+            search_in_collections=query.search_in_collections,
+            top_k=query.top_k,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/records/title_lexical_search",
+    response_model=list[FundusRecord],
+    summary="Perform a lexical search on `FundusRecord`s by title.",
+    tags=["search"],
+)
+def fundus_record_title_lexical_search(query: RecordLexicalSearchQuery):
+    """
+    Endpoint to search `FundusRecord`s based on title.
+
+    Args:
+        query (RecordLexicalSearchQuery): The search parameters.
+
+    Returns:
+        list[FundusRecord]: A list of `FundusRecord`s matching the query.
+    """
+    try:
+        # Pass parameters to the vector database
+        return vdb.fundus_record_title_lexical_search(
+            query=query.query,
+            collection_name=query.collection_name,
+            top_k=query.top_k,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -44,7 +96,7 @@ def fundus_record_image_similarity_search(query: EmbeddingQuery):
 )
 def fundus_collection_lexical_search(query: LexicalSearchQuery):
     try:
-        return vdb.fundus_collection_lexical_search(
+        return vdb._fundus_collection_lexical_search(
             query=query.query,
             top_k=query.top_k,
             search_in_collection_name=query.search_in_collection_name,
