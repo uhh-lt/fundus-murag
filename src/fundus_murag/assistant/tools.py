@@ -34,10 +34,12 @@ LOOKUP_FUNCTIONS: dict[str, Callable] = {
 
 SEARCH_FUNCTIONS: dict[str, Callable] = {
     "fundus_collection_lexical_search": __VDB__.fundus_collection_lexical_search,
+    "fundus_collection_description_similarity_search": __VDB__.fundus_collection_description_similarity_search,
+    "fundus_collection_title_similarity_search": __VDB__.fundus_collection_title_similarity_search,
     "fundus_record_title_lexical_search": __VDB__.fundus_record_title_lexical_search,
     "find_fundus_records_with_similar_image": __VDB__.find_fundus_records_with_similar_image,
     "find_fundus_records_with_images_similar_to_the_text_query": __VDB__.find_fundus_records_with_images_similar_to_the_text_query,
-    # "find_fundus_records_with_titles_similar_to_the_text_query": __VDB__.find_fundus_records_with_titles_similar_to_the_text_query,
+    "find_fundus_records_with_titles_similar_to_the_text_query": __VDB__.find_fundus_records_with_titles_similar_to_the_text_query,
 }
 
 ML_FUNCTIONS: dict[str, Callable] = {
