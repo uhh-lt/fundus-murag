@@ -43,9 +43,7 @@ def large_fundus_record_component(murag_id: str | None):
                     f"**FUNDus! ID** `{record.fundus_id}`\n\n"
                     f"**Catalog No.** `{record.catalogno}`\n\n"
                 )
-                details_md = (
-                    "<details>\n" "<summary>Click to view details</summary>\n\n\n"
-                )
+                details_md = "<details>\n<summary>Click to view details</summary>\n\n\n"
 
                 for key, value in record.details.items():
                     details_md += f"**{key}**\n`{value}`\n\n"
