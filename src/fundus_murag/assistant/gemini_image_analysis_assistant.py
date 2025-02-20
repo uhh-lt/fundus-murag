@@ -62,9 +62,9 @@ class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
             model_name = model_name.split("/")[-1]
 
         if type == "vqa":
-            system_instruction = GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
+            system_instruction = IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
         elif type == "ic":
-            system_instruction = GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
+            system_instruction = IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
         else:
             raise NotImplementedError(f"Unsupported model type: {type}")
 
