@@ -1,4 +1,3 @@
-import json
 from typing import Literal
 
 import google.generativeai as genai
@@ -12,9 +11,12 @@ from vertexai.generative_models import (
     Part,
 )
 
+from fundus_murag.assistant.base_image_analysis_assistant import (
+    BaseImageAnalysisAssistant,
+)
 from fundus_murag.assistant.prompt import (
-    GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
-    GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
 from fundus_murag.data.dto import FundusRecordInternal
@@ -32,7 +34,7 @@ GEMINI_GENERATION_CONFIG = GenerationConfig(
 MODEL_NAME = "gemini-1.5-pro-002"
 
 
-class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
+class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=SingletonMeta):
     def __init__(self, model_name: str | None = None):
         if model_name is None:
             model_name = MODEL_NAME
@@ -62,9 +64,9 @@ class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
             model_name = model_name.split("/")[-1]
 
         if type == "vqa":
-            system_instruction = GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
+            system_instruction = IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION
         elif type == "ic":
-            system_instruction = GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
+            system_instruction = IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION
         else:
             raise NotImplementedError(f"Unsupported model type: {type}")
 
@@ -135,30 +137,21 @@ class GeminiImageAnalysisAssistant(metaclass=SingletonMeta):
             return msg
 
     @staticmethod
-    def _generate_image_captioning_prompt(
-        record: FundusRecordInternal,
-        detailled: bool = False,
-    ) -> Part:
-        prompt = f"Generate a {'detailed' if detailled else 'concise'} caption "
-        prompt += "for the image considering the following metadata.\n"
-        prompt += "# Metadata as JSON\n"
-        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
-
-        return Part.from_text(prompt)
+    def _generate_vqa_prompt(record: FundusRecordInternal, question: str) -> Part:
+        prompt_str = BaseImageAnalysisAssistant.generate_vqa_prompt(record, question)
+        return Part.from_text(prompt_str)
 
     @staticmethod
-    def _generate_vqa_prompt(
-        record: FundusRecordInternal,
-        question: str,
+    def _generate_image_captioning_prompt(
+        record: FundusRecordInternal, detailed: bool = False
     ) -> Part:
-        prompt = "# Question\n"
-        prompt += f"'''\n{question}\n'''\n"
-        prompt += "# Metadata as JSON\n"
-        prompt += f"```json\n{json.dumps(record.details, indent=2)}\n```\n"
+        prompt_str = BaseImageAnalysisAssistant.generate_image_captioning_prompt(
+            record, detailed
+        )
+        return Part.from_text(prompt_str)
 
-        return Part.from_text(prompt)
-
-    def _get_text_response(self, response: GenerationResponse) -> str:
+    @staticmethod
+    def _get_text_response(response: GenerationResponse) -> str:
         try:
             return response.candidates[0].text
         except Exception:
