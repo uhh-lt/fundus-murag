@@ -1,7 +1,7 @@
 import mesop as me
 import pandas as pd
 
-from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
+from fundus_murag.ui.utils import get_assistant_instance
 
 
 @me.stateclass
@@ -27,8 +27,8 @@ class ModelPickerDialogState:
 
 
 def reset_app_state(state: AppState):
-    gemini = GeminiFundusAssistant(state.selected_model)
-    gemini.reset_chat_session()
+    assistant = get_assistant_instance(state.selected_model, state.available_models)
+    assistant.reset_chat_session()
 
     state.is_model_picker_dialog_open = False
     state.is_record_dialog_open = False
