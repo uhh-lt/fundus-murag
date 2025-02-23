@@ -1,4 +1,3 @@
-import json
 from typing import Literal
 
 import google.generativeai as genai
@@ -12,18 +11,17 @@ from vertexai.generative_models import (
     Part,
 )
 
+from fundus_murag.assistant.base_image_analysis_assistant import (
+    BaseImageAnalysisAssistant,
+)
 from fundus_murag.assistant.prompt import (
-    IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
     IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
+    IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
 from fundus_murag.data.dto import FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.singleton_meta import SingletonMeta
-
-from fundus_murag.assistant.base_image_analysis_assistant import BaseImageAnalysisAssistant 
-
-import json
 
 GEMINI_GENERATION_CONFIG = GenerationConfig(
     candidate_count=1,
@@ -144,8 +142,12 @@ class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
         return Part.from_text(prompt_str)
 
     @staticmethod
-    def _generate_image_captioning_prompt(record: FundusRecordInternal, detailed: bool = False) -> Part:
-        prompt_str = BaseImageAnalysisAssistant.generate_image_captioning_prompt(record, detailed)
+    def _generate_image_captioning_prompt(
+        record: FundusRecordInternal, detailed: bool = False
+    ) -> Part:
+        prompt_str = BaseImageAnalysisAssistant.generate_image_captioning_prompt(
+            record, detailed
+        )
         return Part.from_text(prompt_str)
 
     @staticmethod
