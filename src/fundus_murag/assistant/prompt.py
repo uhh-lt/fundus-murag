@@ -24,7 +24,7 @@ FUNDUS_COLLECTION_RENDER_TAG_OPEN = "<FundusCollection"
 RENDER_TAG_MURAG_ID_ATTRIBUTE = "murag_id"
 RENDER_TAG_CLOSE = "/>"
 
-GEMINI_ASSISTANT_SYSTEM_INSTRUCTION = (
+ASSISTANT_SYSTEM_INSTRUCTION = (
     "# Your Role\n"
     "You are a helpful and friendly AI assistant that assists users in exploring the FUNDus! database.\n\n"
     #
@@ -72,7 +72,7 @@ GEMINI_ASSISTANT_SYSTEM_INSTRUCTION = (
     "- If a user prompt is in any language other than English, tell the user that currently only English is supported and output nothing else!\n"
 )
 
-GEMINI_QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION = (
+QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION = (
     "# Your Role\n"
     "You are an AI assistant trained to improve the effectiveness of cross-modal text-image semantic similarity search"
     " from a vector database containing image embeddings computed by a multimodal CLIP model.\n"
@@ -85,7 +85,7 @@ GEMINI_QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION = (
     "does cross-modal similarity search for retrieving images."
 )
 
-GEMINI_QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION = (
+QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION = (
     "# Your Role\n"
     "You are an AI assistant trained to improve the effectiveness of semantic similarity search"
     " from a vector database containing text embeddings.\n"
@@ -99,7 +99,7 @@ GEMINI_QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION = (
 )
 
 
-GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION = (
+IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION = (
     "# Your Role\n"
     "You are an expert AI assistant trained to perform accurate Visual Question Answering (VQA) on images.\n"
     #
@@ -116,7 +116,7 @@ GEMINI_IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION = (
 )
 
 
-GEMINI_IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION = (
+IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION = (
     "# Your Role\n"
     "You are an expert AI assistant trained to perform accurate Image Captioning on images.\n"
     #
