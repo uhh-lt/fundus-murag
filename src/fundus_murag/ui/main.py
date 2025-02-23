@@ -49,7 +49,6 @@ logger.add(
 )
 import mesop as me
 
-from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
 from fundus_murag.config.config import load_config
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.ui.components import (
@@ -69,6 +68,7 @@ from fundus_murag.ui.state import (
     reset_app_state,
     reset_model_picker_dialog_state,
 )
+from fundus_murag.ui.utils import merge_models
 
 
 def on_start_page_load(e: me.LoadEvent):
@@ -82,7 +82,7 @@ def on_start_page_load(e: me.LoadEvent):
     _ = load_config()
     app_state.current_boot_step = "Getting available models ..."
     yield
-    app_state.available_models = GeminiFundusAssistant.list_available_models()
+    app_state.available_models = merge_models()
     app_state.current_boot_step = "Setting up FUNDus data ..."
     yield
     _ = VectorDB()  # to confirm that the data is available
