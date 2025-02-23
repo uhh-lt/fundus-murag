@@ -1,6 +1,10 @@
 import re
 from re import Pattern
 
+import pandas as pd
+
+from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
+from fundus_murag.assistant.openai_fundus_assistant import OpenAIFundusAssistant
 from fundus_murag.assistant.prompt import (
     FUNDUS_COLLECTION_RENDER_TAG_OPEN,
     FUNDUS_RECORD_RENDER_TAG_OPEN,
@@ -58,3 +62,28 @@ def _get_render_tag_pattern(render_tag_open: str) -> Pattern:
         + RENDER_TAG_CLOSE
     )
     return pattern
+
+
+def merge_models() -> pd.DataFrame:
+    gemini_models = GeminiFundusAssistant.list_available_models()
+    openai_models = OpenAIFundusAssistant.list_available_models()
+
+    gemini_df = pd.DataFrame(gemini_models)
+    gemini_df["source"] = "gemini"
+
+    openai_df = pd.DataFrame(openai_models)
+    openai_df["source"] = "openai"
+
+    merged_df = pd.concat([gemini_df, openai_df], ignore_index=True)
+
+    return merged_df
+
+
+def get_assistant_instance(model_name: str, merged_df: pd.DataFrame):
+    model_row = merged_df[merged_df["name"] == model_name]
+    model_source = model_row.iloc[0]["source"]
+
+    if model_source == "gemini":
+        return GeminiFundusAssistant(model_name)
+    else:
+        return OpenAIFundusAssistant(model_name)
