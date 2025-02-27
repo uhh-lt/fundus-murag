@@ -1,9 +1,11 @@
 from typing import Literal, TypedDict
 
 import openai
-from base_image_analysis_assistant import BaseImageAnalysisAssistant
 from loguru import logger
 
+from fundus_murag.assistant.base_image_analysis_assistant import (
+    BaseImageAnalysisAssistant,
+)
 from fundus_murag.assistant.prompt import (
     IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
     IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
