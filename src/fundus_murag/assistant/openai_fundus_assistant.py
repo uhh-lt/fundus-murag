@@ -31,7 +31,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
     def __init__(self, model_name: str, use_tools: bool = True) -> None:
         super().__init__(model_name, use_tools)
         self._conf = load_config()
-        openai.api_key = self._conf.open_ai_api_key
+        openai.api_key = self._conf.open_ai_project_id
 
         self._model_config: ModelConfig = self._create_model_config(
             model_name, use_tools
@@ -103,7 +103,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
     @staticmethod
     def list_available_models(only_gpt: bool = False) -> pd.DataFrame:
         conf = load_config()
-        openai.api_key = conf.open_ai_api_key
+        openai.api_key = conf.open_ai_project_id
 
         logger.info("Fetching OpenAI models.")
         try:

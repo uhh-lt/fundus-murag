@@ -36,7 +36,7 @@ BASE_MODEL_CONFIG: ModelConfig = {
 class OpenAIImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=SingletonMeta):
     def __init__(self, model_name: str | None = None):
         conf = load_config()
-        openai.api_key = conf.open_ai_api_key
+        openai.api_key = conf.open_ai_project_id
         self._vdb = VectorDB()
 
         # defult unless we have another model
