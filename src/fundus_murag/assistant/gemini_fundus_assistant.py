@@ -109,6 +109,8 @@ class GeminiFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             "output_token_limit": [],
         }
         for model in models:
+            # N = model.name
+            # data["name"].append(N[7:])
             data["name"].append(model.name)
             data["display_name"].append(model.display_name)
             data["input_token_limit"].append(model.input_token_limit)
