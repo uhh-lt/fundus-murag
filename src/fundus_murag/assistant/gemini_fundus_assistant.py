@@ -3,7 +3,6 @@ from typing import Any
 import google.generativeai as genai
 import pandas as pd
 import vertexai
-from base_fundus_assistant import BaseFundusAssistant
 from google.oauth2.service_account import Credentials
 from loguru import logger
 from vertexai.generative_models import (
@@ -13,6 +12,7 @@ from vertexai.generative_models import (
     GenerativeModel,
 )
 
+from fundus_murag.assistant.base_fundus_assistant import BaseFundusAssistant
 from fundus_murag.assistant.function_call_handler import FunctionCallHandler
 from fundus_murag.assistant.prompt import ASSISTANT_SYSTEM_INSTRUCTION
 from fundus_murag.assistant.tools import FUNDUS_TOOL

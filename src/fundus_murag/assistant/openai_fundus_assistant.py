@@ -2,9 +2,9 @@ from typing import Any, List, TypedDict
 
 import openai
 import pandas as pd
-from base_fundus_assistant import BaseFundusAssistant
 from loguru import logger
 
+from fundus_murag.assistant.base_fundus_assistant import BaseFundusAssistant
 from fundus_murag.assistant.prompt import ASSISTANT_SYSTEM_INSTRUCTION
 from fundus_murag.config.config import load_config
 from fundus_murag.singleton_meta import SingletonMeta
