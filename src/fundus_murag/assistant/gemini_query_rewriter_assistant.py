@@ -11,8 +11,8 @@ from vertexai.generative_models import (
 )
 
 from fundus_murag.assistant.prompt import (
-    GEMINI_QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION,
-    GEMINI_QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
+    QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION,
+    QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
 )
 from fundus_murag.config.config import load_config
 from fundus_murag.singleton_meta import SingletonMeta
@@ -59,9 +59,9 @@ class GeminiQueryRewriterAssistant(metaclass=SingletonMeta):
         model = GenerativeModel(
             model_name=model_name,
             generation_config=GEMINI_GENERATION_CONFIG,
-            system_instruction=GEMINI_QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION
+            system_instruction=QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION
             if type == "text-image"
-            else GEMINI_QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
+            else QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
         )
         return model
 
