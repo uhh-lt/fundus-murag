@@ -1,7 +1,8 @@
 import mesop as me
 
 from fundus_murag.assistant.dto import ChatMessage
-from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
+
+# from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
 from fundus_murag.data.dto import FundusCollection, FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.ui.config import APP_NAME, EXAMPLES
@@ -11,6 +12,7 @@ from fundus_murag.ui.utils import (
     contains_fundus_record_render_tag,
     extract_murag_id_from_fundus_collection_render_tags,
     extract_murag_id_from_fundus_record_render_tags,
+    get_assistant_instance,
     replace_fundus_collection_render_tag,
     replace_fundus_record_render_tag,
 )
@@ -149,13 +151,14 @@ def submit_input_textarea():
     state = me.state(AppState)
     current_user_input = state.current_user_input.strip()
     if current_user_input != "":
-        gemini = GeminiFundusAssistant(state.selected_model)
-        if gemini.get_chat_messages() is None or len(gemini.get_chat_messages()) == 0:
+        assistant = get_assistant_instance(state.selected_model, state.available_models)
+        if not assistant.get_chat_messages() or len(assistant.get_chat_messages()) == 0:
             me.navigate("/conversation")
-        gemini.send_text_message(
+        assistant.send_text_message(
             prompt=current_user_input,
             reset_chat=False,
         )
+
         me.scroll_into_view(key="end_of_messages")
 
 
@@ -317,8 +320,9 @@ def conversations_display_component():
         )
     ):
         state = me.state(AppState)
-        gemini = GeminiFundusAssistant(state.selected_model)
-        messages = gemini.get_chat_messages()
+        assistant = get_assistant_instance(state.selected_model, state.available_models)
+
+        messages = assistant.get_chat_messages()
         if not messages:
             return
         for message in messages:
