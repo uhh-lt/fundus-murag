@@ -12,14 +12,24 @@ class BaseFundusAssistant(ABC):
         self.use_tools = use_tools
         self.chat_history = []
 
+    @abstractmethod
+    def _extract_text_from_response(self, raw_response: Any) -> str:
+        pass
+
     def send_text_message(self, prompt: str, reset_chat: bool = False) -> Any:
         if reset_chat or not self._chat_session_active():
             self.reset_chat_session()
             self._start_new_chat_session()
 
-        raw_response = self._send_text_message_to_model(prompt)
+        self.chat_history.append({"role": "user", "content": prompt})
 
+        raw_response = self._send_text_message_to_model(prompt)
         final_response = self._handle_function_calls(raw_response)
+
+        assistant_text = self._extract_text_from_response(final_response)
+        if assistant_text:
+            self.chat_history.append({"role": "assistant", "content": assistant_text})
+
         return final_response
 
     @abstractmethod
@@ -42,6 +52,7 @@ class BaseFundusAssistant(ABC):
 
     def reset_chat_session(self) -> None:
         self.chat_history = []
+        self._has_active_session = False
 
     def get_chat_messages(self) -> List[ChatMessage]:
         return [
