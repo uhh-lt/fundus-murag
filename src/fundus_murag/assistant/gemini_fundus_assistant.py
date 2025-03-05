@@ -52,9 +52,18 @@ class GeminiFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
         logger.info(f"Text response received: {response}")
         return response
 
+    def _extract_text_from_response(self, raw_response: GenerationResponse) -> str:
+        if raw_response.candidates and raw_response.candidates[0].text:
+            return raw_response.candidates[0].text
+        return ""
+
     def _start_new_chat_session(self) -> None:
         logger.info("Starting new Gemini chat session.")
         self._chat_session = self._model.start_chat()
+
+    def reset_chat_session(self) -> None:
+        super().reset_chat_session()
+        self._chat_session = None
 
     def _chat_session_active(self) -> bool:
         return self._chat_session is not None
