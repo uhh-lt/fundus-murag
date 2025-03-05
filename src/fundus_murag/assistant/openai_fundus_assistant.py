@@ -16,14 +16,12 @@ class ModelConfig(TypedDict):
     model_name: str
     system_instruction: str
     temperature: float
-    max_tokens: int
 
 
 BASE_MODEL_CONFIG: ModelConfig = {
     "model_name": "",
     "system_instruction": "",
     "temperature": 1.0,
-    "max_tokens": 2048,
 }
 
 
@@ -40,13 +38,11 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
 
     def _send_text_message_to_model(self, prompt: str) -> Any:
         logger.info(f"Sending text prompt to OpenAI: {prompt}")
-        self.chat_history.append({"role": "user", "content": prompt})
         try:
             response = openai.chat.completions.create(
                 model=self._model_config["model_name"],
                 messages=self.chat_history,
                 temperature=self._model_config["temperature"],
-                max_tokens=self._model_config["max_tokens"],
             )
             message_content = response.choices[0].message.content
             self.chat_history.append({"role": "assistant", "content": message_content})
@@ -56,12 +52,15 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             logger.error(f"OpenAI - Error during text prompt handling: {e}")
             return {"error": str(e)}
 
+    def _extract_text_from_response(self, raw_response: dict) -> str:
+        try:
+            return raw_response["choices"][0]["message"]["content"]
+        except Exception:
+            return ""
+
     def _start_new_chat_session(self) -> None:
         logger.info("Starting new OpenAI chat session.")
-        self.chat_history = []
-        self.chat_history.append(
-            {"role": "system", "content": self._model_config["system_instruction"]}
-        )
+        self.reset_chat_session()
         self._has_active_session = True
 
     def _chat_session_active(self) -> bool:
@@ -77,7 +76,6 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
                 model=self._model_config["model_name"],
                 messages=self.chat_history,
                 temperature=self._model_config["temperature"],
-                max_tokens=self._model_config["max_tokens"],
             )
             message_content = response.choices[0].message.content
             self.chat_history.append({"role": "assistant", "content": message_content})
