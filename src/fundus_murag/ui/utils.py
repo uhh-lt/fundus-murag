@@ -86,4 +86,8 @@ def get_assistant_instance(model_name: str, merged_df: pd.DataFrame):
     if model_source == "gemini":
         return GeminiFundusAssistant(model_name)
     else:
-        return OpenAIFundusAssistant(model_name)
+        assistant = OpenAIFundusAssistant(model_name)
+        # If the current instance's model does not match the requested model, switch it.
+        if assistant.model_name != model_name:
+            assistant.switch_model(model_name)
+        return assistant
