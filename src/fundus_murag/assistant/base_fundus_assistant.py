@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import pandas as pd
 
@@ -85,19 +85,28 @@ class BaseFundusAssistant(ABC):
         except Exception:
             return False
 
-    def _execute_function_call(self, response: Any) -> Any:
+    def _execute_function_call_common(self, response: Any) -> Tuple[str, Any]:
+        function_name, function_args = self._parse_function_call(response)
+        print(f"Executing function '{function_name}' with arguments: {function_args}")
         try:
-            message = response.get("choices", [])[0].get("message", {})
-            function_call = message.get("function_call", {})
-            function_name = function_call.get("name", "unknown_function")
-            args = function_call.get("arguments", {})
-            return {
-                "role": "function",
-                "name": function_name,
-                "content": f"Executed {function_name} with {args}",
-            }
+            result = self._function_call_handler.execute_function(  # type: ignore
+                name=function_name,
+                convert_results_to_json=True,
+                **function_args,
+            )
+            print(f"Function '{function_name}' executed successfully. Result: {result}")
+            return function_name, result
         except Exception as e:
-            return {"error": str(e)}
+            print(f"Error executing function call: {e}")
+            return function_name, str(e)
+
+    @abstractmethod
+    def _parse_function_call(self, response: Any) -> Tuple[str, dict]:
+        pass
+
+    @abstractmethod
+    def _execute_function_call(self, response: Any) -> Any:
+        pass
 
     @staticmethod
     @abstractmethod
