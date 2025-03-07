@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 
 import google.generativeai as genai
 import pandas as pd
@@ -70,31 +70,24 @@ class GeminiFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
     def _chat_session_active(self) -> bool:
         return self._chat_session is not None
 
-    def _is_text_response(self, response: GenerationResponse) -> bool:
-        try:
-            return response.candidates[0].text is not None
-        except Exception:
-            return False
-
+    # Gemini uses a different response structure.
     def _is_function_call_response(self, response: GenerationResponse) -> bool:
         try:
             return len(response.candidates[0].function_calls) > 0
         except Exception:
             return False
 
+    def _parse_function_call(self, response: GenerationResponse) -> Tuple[str, dict]:
+        function_call = response.candidates[0].content.parts[0].function_call
+        return function_call.name, dict(function_call.args)
+
     def _execute_function_call(self, response: GenerationResponse) -> Part:
         try:
             self._print_function_call(response)
-            function_call = response.candidates[0].content.parts[0].function_call
-            params = dict(function_call.args)
-            res = self._function_call_handler.execute_function(
-                name=function_call.name,
-                convert_results_to_json=True,
-                **params,
-            )
+            function_name, result = self._execute_function_call_common(response)
             part = Part.from_function_response(
-                name=function_call.name,
-                response={"content": res},
+                name=function_name,
+                response={"content": result},
             )
             self._print_function_call_result(part)
             return part
@@ -109,14 +102,6 @@ class GeminiFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
         logger.info("Sending function call result back to Gemini.")
         response = self._chat_session.send_message(content)  # type: ignore
         self._print_text_response(response)
-        return response
-
-    def _handle_function_calls(
-        self, response: GenerationResponse
-    ) -> GenerationResponse:
-        while self._is_function_call_response(response):
-            part = self._execute_function_call(response)
-            response = self._send_followup_message_to_model(part)
         return response
 
     def _print_function_call(self, response: GenerationResponse) -> None:
@@ -142,7 +127,6 @@ class GeminiFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
         try:
             text = response.candidates[0].text or ""
         except ValueError:
-            # Gemini raises ValueError if .text is not available
             logger.info("No text available in this response.")
         logger.info(text)
         logger.info("+" * 120)
@@ -174,7 +158,6 @@ class GeminiFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
         genai.configure(credentials=creds)
         models = []
         for m in genai.list_models():
-            # Filter out any non-Gemini or dev/tuning versions
             if (
                 "gemini" not in m.name
                 or "1.5" not in m.name
