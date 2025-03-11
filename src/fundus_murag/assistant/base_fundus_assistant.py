@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -38,7 +38,7 @@ class BaseFundusAssistant(ABC):
 
     @abstractmethod
     def send_text_image_message(
-        self, text_prompt: str, base64_images: List[str], reset_chat: bool = False
+        self, text_prompt: str, base64_images: list[str], reset_chat: bool = False
     ) -> Any:
         pass
 
@@ -54,7 +54,7 @@ class BaseFundusAssistant(ABC):
         self.chat_history = []
         self._has_active_session = False
 
-    def get_chat_messages(self) -> List[ChatMessage]:
+    def get_chat_messages(self) -> list[ChatMessage]:
         return [
             ChatMessage(role=msg["role"], content=msg["content"])
             for msg in self.chat_history
@@ -63,12 +63,8 @@ class BaseFundusAssistant(ABC):
     def _handle_function_calls(self, response: Any) -> Any:
         while self._is_function_call_response(response):
             result = self._execute_function_call(response)
-            response = self._send_followup_message_to_model(result)
+            response = self._send_text_message_to_model(result, is_followup=True)  # type: ignore
         return response
-
-    @abstractmethod
-    def _send_followup_message_to_model(self, content: Any) -> Any:
-        pass
 
     def _is_text_response(self, response: Any) -> bool:
         try:
@@ -85,7 +81,7 @@ class BaseFundusAssistant(ABC):
         except Exception:
             return False
 
-    def _execute_function_call_common(self, response: Any) -> Tuple[str, Any]:
+    def _execute_function_call_common(self, response: Any) -> tuple[str, Any]:
         function_name, function_args = self._parse_function_call(response)
         print(f"Executing function '{function_name}' with arguments: {function_args}")
         try:
@@ -101,7 +97,7 @@ class BaseFundusAssistant(ABC):
             return function_name, str(e)
 
     @abstractmethod
-    def _parse_function_call(self, response: Any) -> Tuple[str, dict]:
+    def _parse_function_call(self, response: Any) -> tuple[str, dict]:
         pass
 
     @abstractmethod

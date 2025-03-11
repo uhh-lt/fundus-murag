@@ -1,5 +1,5 @@
 import json
-from typing import Any, List, Optional, Tuple, TypedDict
+from typing import Any, Optional, TypedDict
 
 import openai
 import pandas as pd
@@ -12,7 +12,7 @@ from fundus_murag.config.config import load_config
 from fundus_murag.singleton_meta import SingletonMeta
 
 # Default model name if none provided
-OPENAI_MODEL = "gpt-4-0613"
+OPENAI_MODEL = "gpt-4o-2024-11-20"
 
 
 class ModelConfig(TypedDict):
@@ -32,7 +32,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
     def __init__(self, model_name: str, use_tools: bool = True) -> None:
         super().__init__(model_name, use_tools)
         self._conf = load_config()
-        openai.api_key = self._conf.open_ai_project_id
+        openai.api_key = self._conf.open_ai_api_key
 
         self._model_config: ModelConfig = self._create_model_config(
             model_name, use_tools
@@ -43,7 +43,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
 
         self._persistent_history = self.chat_history
 
-    def _get_full_history(self) -> List[dict]:
+    def _get_full_history(self) -> list[dict]:
         full_history = []
         if self._model_config["system_instruction"]:
             full_history.append(
@@ -60,13 +60,20 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             )
             self.reset_chat_session()
 
-    def _send_text_message_to_model(self, prompt: str) -> Any:
-        logger.info(f"Sending text prompt to OpenAI: {prompt}")
-        self._persistent_history.append({"role": "user", "content": prompt})
+    def _send_text_message_to_model(
+        self, prompt: str, is_followup: bool = False
+    ) -> Any:
+        if is_followup:
+            logger.info("Sending follow-up message to model after function call.")
+            self._persistent_history.append(
+                {"role": "assistant", "content": str(prompt)}
+            )
+        else:
+            logger.info(f"Sending text prompt to model: {prompt}")
+            self._persistent_history.append({"role": "user", "content": prompt})
 
         response = self._create_chat_completion(self._get_full_history())
-        final_response = self._handle_function_calls(response)
-        return final_response
+        return response
 
     def _is_function_call_response(self, response: Any) -> bool:
         try:
@@ -80,7 +87,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             logger.error(f"Error checking for function call: {e}")
             return False
 
-    def _parse_function_call(self, response: Any) -> Tuple[str, dict]:
+    def _parse_function_call(self, response: Any) -> tuple[str, dict]:
         message = response.choices[0].message
         function_call = message.function_call
         function_args_str = function_call.arguments or "{}"
@@ -102,8 +109,8 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             logger.error(f"Error extracting text from response: {e}")
             return ""
 
-    def _create_chat_completion(self, messages: List[dict]) -> Any:
-        functions: Optional[List[dict]] = None
+    def _create_chat_completion(self, messages: list[dict]) -> Any:
+        functions: Optional[list[dict]] = None
         function_call_setting: str = "auto"
 
         if self.use_tools:
@@ -126,12 +133,6 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             logger.error(f"Unexpected error: {e}")
             return {"error": str(e)}
 
-    def _send_followup_message_to_model(self, content: Any) -> Any:
-        logger.info("Sending follow-up message to OpenAI after function call.")
-        self._persistent_history.append({"role": "assistant", "content": str(content)})
-        response = self._create_chat_completion(self._get_full_history())
-        return response
-
     def _start_new_chat_session(self) -> None:
         logger.info("Starting new OpenAI chat session.")
         self.reset_chat_session()
@@ -146,7 +147,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
         return self._has_active_session
 
     def send_text_image_message(
-        self, text_prompt: str, base64_images: List[str], reset_chat: bool = False
+        self, text_prompt: str, base64_images: list[str], reset_chat: bool = False
     ) -> Any:
         raise NotImplementedError
 
@@ -159,7 +160,7 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
     @staticmethod
     def list_available_models(only_gpt: bool = False) -> pd.DataFrame:
         conf = load_config()
-        openai.api_key = conf.open_ai_project_id
+        openai.api_key = conf.open_ai_api_key
 
         logger.info("Fetching OpenAI models.")
         try:
@@ -192,8 +193,8 @@ class OpenAIFundusAssistant(BaseFundusAssistant, metaclass=SingletonMeta):
             "preview",
             "turbo",
             "chatgpt-4o-latest",
+            r"gpt-4(?!o)",  # Excludes "gpt-4" but not "gpt-4o"
         ]
-
         include_pattern = "|".join(photo_model_substrings)
         exclude_pattern = "|".join(exclude_substrings)
 
