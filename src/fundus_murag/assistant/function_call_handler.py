@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable, List, get_type_hints
+from typing import Callable, get_type_hints
 
 import srsly
 from fastapi.encoders import jsonable_encoder
@@ -31,7 +31,7 @@ class FunctionCallHandler:
     def register_function(self, name: str, func: Callable) -> None:
         self._name_to_function[name] = func
 
-    def get_registered_functions(self) -> List[str]:
+    def get_registered_functions(self) -> list[str]:
         return list(self._name_to_function.keys())
 
     def execute_function(
@@ -51,7 +51,7 @@ class FunctionCallHandler:
     def _res_to_json(self, res) -> str:
         return srsly.json_dumps(jsonable_encoder(res))
 
-    def get_tool_schema_list(self) -> List[dict]:
+    def get_tool_schema_list(self) -> list[dict]:
         """
         Generate a list of JSON schemas for each registered function.
         Each schema follows the OpenAI function calling format.

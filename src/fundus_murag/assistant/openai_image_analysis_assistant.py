@@ -15,7 +15,7 @@ from fundus_murag.data.dto import FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.singleton_meta import SingletonMeta
 
-OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_MODEL = "gpt-4o-2024-11-20"
 
 
 class ModelConfig(TypedDict):
@@ -36,7 +36,7 @@ BASE_MODEL_CONFIG: ModelConfig = {
 class OpenAIImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=SingletonMeta):
     def __init__(self, model_name: str | None = None):
         conf = load_config()
-        openai.api_key = conf.open_ai_project_id
+        openai.api_key = conf.open_ai_api_key
         self._vdb = VectorDB()
 
         # defult unless we have another model
