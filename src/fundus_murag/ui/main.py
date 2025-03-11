@@ -4,7 +4,7 @@
 
 # import debugpy
 
-# debugpy.listen(58678)
+# debugpy.listen(47678)
 
 # first, setup the logger
 import os
@@ -68,7 +68,7 @@ from fundus_murag.ui.state import (
     reset_app_state,
     reset_model_picker_dialog_state,
 )
-from fundus_murag.ui.utils import merge_models
+from fundus_murag.ui.utils import get_available_models_df
 
 
 def on_start_page_load(e: me.LoadEvent):
@@ -82,7 +82,7 @@ def on_start_page_load(e: me.LoadEvent):
     _ = load_config()
     app_state.current_boot_step = "Getting available models ..."
     yield
-    app_state.available_models = merge_models()
+    app_state.available_models = get_available_models_df()
     app_state.current_boot_step = "Setting up FUNDus data ..."
     yield
     _ = VectorDB()  # to confirm that the data is available
