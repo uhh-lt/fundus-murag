@@ -1,7 +1,7 @@
 import mesop as me
 import pandas as pd
 
-from fundus_murag.ui.utils import get_assistant_instance, merge_models
+from fundus_murag.ui.utils import get_assistant_instance, get_available_models_df
 
 
 @me.stateclass
@@ -13,8 +13,8 @@ class AppState:
     current_boot_step: str
 
     available_models: pd.DataFrame
-    selected_model_display_name: str = "Gemini 1.5 Flash 002"
-    selected_model: str = "models/gemini-1.5-flash-002"
+    selected_model_display_name: str = "Gemini 2.0 Flash 001"
+    selected_model: str = "models/gemini-2.0-flash-001"
 
     current_user_input: str
     current_enlarged_record_murag_id: str
@@ -27,11 +27,10 @@ class ModelPickerDialogState:
 
 
 def reset_app_state(state: AppState):
-    state.available_models = pd.DataFrame()
-    state.available_models = merge_models()
+    state.available_models = get_available_models_df()
 
-    state.selected_model_display_name = "Gemini 1.5 Pro 002"
-    state.selected_model = "models/gemini-1.5-pro-002"
+    state.selected_model_display_name = "Gemini 2.0 Flash 001"
+    state.selected_model = "models/gemini-2.0-flash-001"
 
     assistant = get_assistant_instance(state.selected_model, state.available_models)
     assistant.reset_chat_session()

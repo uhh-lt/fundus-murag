@@ -64,7 +64,7 @@ def _get_render_tag_pattern(render_tag_open: str) -> Pattern:
     return pattern
 
 
-def merge_models() -> pd.DataFrame:
+def get_available_models_df() -> pd.DataFrame:
     gemini_models = GeminiFundusAssistant.list_available_models()
     openai_models = OpenAIFundusAssistant.list_available_models()
 
@@ -74,20 +74,32 @@ def merge_models() -> pd.DataFrame:
     openai_df = pd.DataFrame(openai_models)
     openai_df["source"] = "openai"
 
-    merged_df = pd.concat([gemini_df, openai_df], ignore_index=True)
+    models_df = pd.concat([gemini_df, openai_df], ignore_index=True)
 
-    return merged_df
+    return models_df
 
 
 def get_assistant_instance(model_name: str, merged_df: pd.DataFrame):
-    model_row = merged_df[merged_df["name"] == model_name]
-    model_source = model_row.iloc[0]["source"]
+    # Use the model name as-is (converted to lower case for case-insensitive matching)
+    lookup_name = model_name.lower()
+
+    # Compare directly with the DataFrame's "name" column (assuming they are stored with the prefix)
+    model_row = merged_df[merged_df["name"].str.lower() == lookup_name]
+    if model_row.empty:
+        available = merged_df["name"].tolist()
+        raise ValueError(
+            f"Model '{lookup_name}' not found in available models: {available}"
+        )
+
+    model_source = model_row.iloc[0]["source"].lower()
 
     if model_source == "gemini":
-        return GeminiFundusAssistant(model_name)
+        assistant = GeminiFundusAssistant(model_name)
+        if assistant.model_name.lower() != model_name.lower():
+            assistant.switch_model(model_name)
+        return assistant
     else:
         assistant = OpenAIFundusAssistant(model_name)
-        # If the current instance's model does not match the requested model, switch it.
-        if assistant.model_name != model_name:
+        if assistant.model_name.lower() != model_name.lower():
             assistant.switch_model(model_name)
         return assistant
