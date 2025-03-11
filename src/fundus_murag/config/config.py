@@ -23,8 +23,7 @@ class Config:
     google_application_credentials_file: str
     google_project_id: str
 
-    open_ai_application_credentials_file: str
-    open_ai_project_id: str
+    open_ai_api_key: str
 
     fundus_ml_url: str
 
@@ -53,10 +52,6 @@ def load_config(config_file: str | Path | None = None) -> Config:
 
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
         cfg.google_application_credentials_file
-    )
-
-    os.environ["OPEN_AI_APPLICATION_CREDENTIALS"] = (
-        cfg.open_ai_application_credentials_file
     )
 
     print(yaml.dump(config, indent=2))
