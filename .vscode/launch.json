@@ -5,26 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "FUNDus Data API FastAPI",
+            "name": "FUNDus MURAG FastAPI",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "fundus_murag.data.main:app",
+                "fundus_murag.main:app",
                 "--reload",
                 "--reload-dir",
                 "${workspaceFolder}/src",
                 "--port",
-                "58008",
+                "58019",
                 "--host",
                 "0.0.0.0",
                 "--log-level",
                 "debug"
             ],
-            "cwd": "${workspaceFolder}/src",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
-                "FUNDUS_CONFIG_FILE": "../config/config.dev.yaml"
+                "FUNDUS_CONFIG_FILE": "config/config.dev.yaml"
             }
         },
         {

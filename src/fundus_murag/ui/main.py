@@ -2,54 +2,19 @@
 # noqa: E402 (= ignore imports not at the top of file)
 # Un-comment the following lines to enable debugging and start the debugger from the `launch.json` configuration in VSCode.
 
-# import debugpy
+import debugpy
 
-# debugpy.listen(47678)
+debugpy.listen(58678)
 
-# first, setup the logger
-import os
-import sys
-from pathlib import Path
-
-from loguru import logger
-
-FUNDUS_UI_DEV_MODE = int(os.environ.get("FUNDUS_UI_DEV_MODE", 1))
-
-if FUNDUS_UI_DEV_MODE == 1:
-    LOG_DIR = Path("./logs")
-    if not LOG_DIR.exists():
-        LOG_DIR.mkdir(parents=True)
-    LOG_DIR = str(LOG_DIR)
-else:
-    LOG_DIR = "/logs"
-
-log_level = "DEBUG"
-log_format = (
-    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | "
-    "<level>{level: <6}</level> | "
-    "<yellow>{name}.{module}::{function}::{line}</yellow> "
-    "<b>{message}</b>"
-)
-logger.remove()
-logger.add(
-    sys.stderr,
-    level=log_level,
-    format=log_format,
-    colorize=True,
-    backtrace=True,
-    diagnose=True,
-)
-logger.add(
-    LOG_DIR + "/murag_ui_{time}.log",
-    level=log_level,
-    format=log_format,
-    colorize=False,
-    backtrace=True,
-    diagnose=True,
-)
 import mesop as me
 
-from fundus_murag.config.config import load_config
+from fundus_murag.logging_config import setup_logging
+
+setup_logging()
+
+
+from fundus_murag.assistant.assistant_factory import AssistantFactory
+from fundus_murag.config import load_config
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.ui.components import (
     booting_box_component,
@@ -68,7 +33,11 @@ from fundus_murag.ui.state import (
     reset_app_state,
     reset_model_picker_dialog_state,
 )
-from fundus_murag.ui.utils import get_available_models_df
+
+__ASSISTANT_FACTORY__ = AssistantFactory()
+
+
+default_model = __ASSISTANT_FACTORY__.get_default_model()
 
 
 def on_start_page_load(e: me.LoadEvent):
@@ -82,7 +51,7 @@ def on_start_page_load(e: me.LoadEvent):
     _ = load_config()
     app_state.current_boot_step = "Getting available models ..."
     yield
-    app_state.available_models = get_available_models_df()
+    app_state.available_models = __ASSISTANT_FACTORY__.list_available_models()
     app_state.current_boot_step = "Setting up FUNDus data ..."
     yield
     _ = VectorDB()  # to confirm that the data is available

@@ -9,10 +9,16 @@ src = ["src"]
 extend-select = ["I", "W292", "W291"]
 
 [tool.pyright]
-include = ["src/fundus_murag"]
+include = ["src"]
 exclude = ["**/__pycache__",
     "notebooks",
 ]
-extraPaths = ["src/fundus_murag"]
+extraPaths = ["src"]
 reportIncompatibleMethodOverride = false
 reportIncompatibleVariableOverride = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

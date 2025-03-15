@@ -13,7 +13,7 @@ services:
       - TRANSFORMERS_CACHEe=/models_cache
       - HUGGINGFACE_HUB_CACHE=/models_cache
       - TORCH_HOME=/models_cache
-      - FUNDUS_ML_DEV_MODE=${FUNDUS_ML_DEV_MODE}
+      - FUNDUS_ML_DEV_MODE=${FUNDUS_ML_DEV_MODE:-False}
     deploy:
       resources:
         reservations:
@@ -28,14 +28,14 @@ services:
     profiles:
       - fundusui
     ports:
-      - "${FUNDUS_UI_EXPOSED}:8080"
+      - "${FUNDUS_UI_EXPOSED:-8080}:8080"
     volumes:
       - ../data:/data
       - ./fundus-murag-ui-logs:/logs
     restart: on-failure:0
     environment:
       - FUNDUS_CONFIG_FILE=config.prod.yaml
-      - FUNDUS_UI_DEV_MODE=${FUNDUS_UI_DEV_MODE}
+      - FUNDUS_UI_DEV_MODE=${FUNDUS_UI_DEV_MODE:-False}
 
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
@@ -89,44 +89,44 @@ services:
       ENABLE_MODULES: ""
       CLUSTER_HOSTNAME: "node1"
 
-  vllm:
-    image: vllm/vllm-openai:nightly
-    profiles:
-      - local-vlm
-    entrypoint: python3
-    command:
-      - -m
-      - vllm.entrypoints.openai.api_server
-      - --port=8000
-      - --host=0.0.0.0
-      - --model mistralai/Pixtral-12B-2409
-      - --limit-mm-per-prompt 'image=10'
-      - --max-model-len 32768
-      - --tokenizer-mode mistral
-      - --load-format mistral
-      - --config-format mistral"
-    # --enable-auto-tool-choice --tool-call-parser mistral --tokenizer-mode mistral --load-format mistral --config-format mistral" --chat-template /workspace/templates/tool_chat_template_mistral.jinja"
-    env_file:
-      - .env
-    ports:
-      - "${VLLM_EXPOSED}:8000"
-    environment:
-      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
-      - LOG_LEVEL=DEBUG
-    volumes:
-      - ./cache:/workspace/.cache
-      - ./templates:/workspace/templates
-    restart: always
-    shm_size: "64gb"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://0.0.0.0:8000/v1/models" ]
-      interval: 30s
-      timeout: 5s
-      retries: 20
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: [ "1" ]
-              capabilities: [ gpu ]
+  # vllm:
+  #   image: vllm/vllm-openai:nightly
+  #   profiles:
+  #     - local-vlm
+  #   entrypoint: python3
+  #   command:
+  #     - -m
+  #     - vllm.entrypoints.openai.api_server
+  #     - --port=8000
+  #     - --host=0.0.0.0
+  #     - --model mistralai/Pixtral-12B-2409
+  #     - --limit-mm-per-prompt 'image=10'
+  #     - --max-model-len 32768
+  #     - --tokenizer-mode mistral
+  #     - --load-format mistral
+  #     - --config-format mistral"
+  #   # --enable-auto-tool-choice --tool-call-parser mistral --tokenizer-mode mistral --load-format mistral --config-format mistral" --chat-template /workspace/templates/tool_chat_template_mistral.jinja"
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "${VLLM_EXPOSED}:8000"
+  #   environment:
+  #     - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+  #     - LOG_LEVEL=DEBUG
+  #   volumes:
+  #     - ./cache:/workspace/.cache
+  #     - ./templates:/workspace/templates
+  #   restart: always
+  #   shm_size: "64gb"
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://0.0.0.0:8000/v1/models" ]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 20
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids: [ "1" ]
+  #             capabilities: [ gpu ]
