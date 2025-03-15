@@ -9,8 +9,8 @@ docker/weaviate_data/
 docker/weaviate_data-dev/
 docker/cache/
 
-src/fundus_murag/config/config.dev.yaml
-src/fundus_murag/config/config.prod.yaml
+config/config.dev.yaml
+config/config.prod.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
