@@ -10,7 +10,7 @@ from fundus_murag.assistant.prompt import (
     IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
     IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
 )
-from fundus_murag.config.config import load_config
+from fundus_murag.config import load_config
 from fundus_murag.data.dto import FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
 from fundus_murag.singleton_meta import SingletonMeta

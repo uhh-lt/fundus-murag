@@ -14,7 +14,7 @@ from fundus_murag.assistant.prompt import (
     QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION,
     QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
 )
-from fundus_murag.config.config import load_config
+from fundus_murag.config import load_config
 from fundus_murag.singleton_meta import SingletonMeta
 
 GEMINI_GENERATION_CONFIG = GenerationConfig(

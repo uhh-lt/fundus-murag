@@ -83,7 +83,7 @@ def confirm_model_picker_dialog(e: me.ClickEvent):
     state = me.state(ModelPickerDialogState)
     app_state = me.state(AppState)
     app_state.selected_model = state.selected_model
-    app_state.selected_model_display_name = state.selected_model_display_name
+    app_state.selected_model
     state.selected_model = ""
     state.selected_model_display_name = ""
     app_state.is_model_picker_dialog_open = False

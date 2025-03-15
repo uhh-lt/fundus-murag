@@ -18,9 +18,11 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US.UTF-8
 
 # Install dependencies
-COPY fundus_murag/ui/requirements.txt .
 RUN --mount=type=cache,target=/root/.cache \
-    pip install -r requirements.txt
+    pip install uv
+COPY fundus_murag/requirements.txt .
+RUN --mount=type=cache,target=/root/.cache \
+    uv pip install -r requirements.txt
 
 # Create non-root user
 RUN groupadd -g 900 mesop && useradd -u 900 -s /bin/bash -g mesop mesop

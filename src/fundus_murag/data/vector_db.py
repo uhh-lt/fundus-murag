@@ -12,20 +12,22 @@ from weaviate.classes.query import Filter, MetadataQuery, QueryNested, QueryRefe
 from fundus_murag.assistant.gemini_query_rewriter_assistant import (
     GeminiQueryRewriterAssistant,
 )
-from fundus_murag.config.config import load_config
+from fundus_murag.config import load_config
 from fundus_murag.data.config import (
     FUNDUS_COLLECTION_SCHEMA_NAME,
-    # FUNDUS_COLLECTION_SCHEMA_VECTOR_INDEX_CONFIG, #it is already set in FUNDUS_COLLECTION_SCHEMA_VECTORIZER
     FUNDUS_COLLECTION_SCHEMA_VECTORIZER,
     FUNDUS_RECORD_SCHEMA_NAME,
     FUNDUS_RECORD_SCHEMA_REFS,
     FUNDUS_RECORD_SCHEMA_VECTORIZER,
 )
-from fundus_murag.data.dto import (
+from fundus_murag.data.dtos.fundus import (
     FundusCollection,
-    FundusCollectionSemanticSearchResult,
     FundusRecord,
+    FundusRecordImage,
     FundusRecordInternal,
+)
+from fundus_murag.data.dtos.vector_db import (
+    FundusCollectionSemanticSearchResult,
     FundusRecordSemanticSearchResult,
 )
 from fundus_murag.data.utils import (
@@ -99,6 +101,9 @@ class VectorDB(metaclass=SingletonMeta):
             logger.warning(msg)
             if raise_on_error:
                 raise ConnectionError(msg)
+        logger.info(
+            f"Connected to Weaviate {self._config.weaviate_host}:{self._config.weaviate_http_port}"
+        )
         return client
 
     def is_initialized(self) -> bool:
@@ -428,7 +433,8 @@ class VectorDB(metaclass=SingletonMeta):
         """
         collection = self._get_fundus_collection_collection()
         res = collection.query.fetch_objects()
-        return self._create_fundus_collection_from_query_results(res)
+        results = self._create_fundus_collection_from_query_results(res)
+        return results
 
     def get_fundus_collection_by_murag_id(
         self,
@@ -451,7 +457,8 @@ class VectorDB(metaclass=SingletonMeta):
         if len(res.objects) == 0:
             raise KeyError(f"FundusCollection with 'murag_id'={murag_id} not found!")
 
-        return self._create_fundus_collection_from_query_results(res)[0]
+        results = self._create_fundus_collection_from_query_results(res)[0]
+        return results
 
     def _resolve_collection_name(self, collection_name: str) -> str:
         # exact matches
@@ -505,7 +512,8 @@ class VectorDB(metaclass=SingletonMeta):
                 f"Ambigious collection name `{collection_name}`! Multiple possible collections found: {matches}"
             )
 
-        return matches[0][0]
+        results = matches[0][0]
+        return results
 
     def get_fundus_collection_by_name(
         self,
@@ -532,19 +540,36 @@ class VectorDB(metaclass=SingletonMeta):
                 f"FundusCollection with 'collection_name'={collection_name} not found!"
             )
 
-        return self._create_fundus_collection_from_query_results(res)[0]
+        results = self._create_fundus_collection_from_query_results(res)
+        return results[0]
 
     def get_random_fundus_collection(
         self,
-    ) -> FundusCollection:
+        n: int = 1,
+    ) -> list[FundusCollection]:
         """
-        Get a random `FundusCollection`
+        Get random `FundusCollection`s from the FUNDus! database.
+
+        Args:
+            n (int, optional): Number of collections to return. Defaults to 1
 
         Returns:
             `FundusCollection`: A random `FundusCollection` object.
         """
-        collection_name = self._collections_df.sample(1)["collection_name"].values[0]
-        return self.get_fundus_collection_by_name(collection_name=collection_name)
+        if n > len(self._collections_df):
+            logger.warning(
+                f"Requested {n} random collections, but only {len(self._collections_df)} available."
+            )
+            n = len(self._collections_df)
+
+        collection_names = self._collections_df.sample(int(n))[
+            "collection_name"
+        ].values[0]
+        results = [
+            self.get_fundus_collection_by_name(collection_name=cn)
+            for cn in collection_names
+        ]
+        return results
 
     def get_random_fundus_records(
         self,
@@ -555,7 +580,7 @@ class VectorDB(metaclass=SingletonMeta):
         Get N random `FundusRecord`s. If `collection_name` is specified, the records will be from the respective `FundusCollection`.
 
         Args:
-            n (int, optional): Number of records to return. Defaults to 1.
+            n (int, optional): Number of records to return. Defaults to 1
             collection_name (str, optional): An optional name of a `FundusCollection` specifying the records to return. If None, records will be from any `FundusCollection`. Defaults to None.
 
         Returns:
@@ -571,12 +596,19 @@ class VectorDB(metaclass=SingletonMeta):
         else:
             records_in_collection = self._records_df
 
+        if n > len(records_in_collection):
+            logger.warning(
+                f"Requested {n} random records, but only {len(records_in_collection)} available."
+            )
+            n = len(records_in_collection)
+
         murag_ids = list(records_in_collection.sample(n=int(n))["murag_id"].values)
 
-        return [
+        results = [
             self.get_fundus_record_by_murag_id(murag_id=murag_id)
             for murag_id in murag_ids
         ]
+        return results
 
     def get_fundus_record_by_murag_id(
         self,
@@ -600,7 +632,38 @@ class VectorDB(metaclass=SingletonMeta):
         if len(res.objects) == 0:
             raise KeyError(f"FundusRecord with murag_id={murag_id} not found!")
 
-        return self._create_fundus_record_from_query_results(res)[0]
+        results = self._create_fundus_record_from_query_results(res)
+        return results[0]
+
+    def get_fundus_record_image_by_murag_id(
+        self,
+        murag_id: str,
+    ) -> FundusRecordImage:
+        """
+        Get a `FundusRecordImage` by its unique identifier.
+
+        Args:
+            murag_id (str): The unique identifier of the record in the VectorDB.
+
+        Returns:
+            `FundusRecordImage`: The `FundusRecordImage` object with the specified `murag_id`.
+        """
+        collection = self._get_fundus_record_collection()
+        res = collection.query.fetch_objects(
+            filters=Filter.by_property("murag_id").equal(murag_id),
+            return_references=[],  # return no references
+        )
+        if len(res.objects) == 0:
+            raise KeyError(f"FundusRecord with murag_id={murag_id} not found!")
+
+        item_probs = res.objects[0].properties
+        result = FundusRecordImage(
+            murag_id=murag_id,
+            fundus_id=item_probs["fundus_id"],  # type: ignore
+            image_name=item_probs["image_name"],  # type: ignore
+            base64_image=item_probs["image"],  # type: ignore
+        )
+        return result
 
     def get_fundus_records_by_fundus_id(
         self,
@@ -623,7 +686,8 @@ class VectorDB(metaclass=SingletonMeta):
         if len(res.objects) == 0:
             raise KeyError(f"FundusRecord with fundus_id={fundus_id} not found!")
 
-        return self._create_fundus_record_from_query_results(res)
+        results = self._create_fundus_record_from_query_results(res)
+        return results
 
     def find_fundus_records_with_similar_image(
         self,
@@ -637,7 +701,7 @@ class VectorDB(metaclass=SingletonMeta):
         Args:
             murag_id (str): The unique identifier of the record in the VectorDB.
             search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
@@ -646,11 +710,12 @@ class VectorDB(metaclass=SingletonMeta):
         image_embedding = self._fundus_ml_client.compute_image_embedding(
             record.base64_image, return_tensor="np"
         ).tolist()  # type: ignore
-        return self._fundus_record_image_similarity_search(
+        results = self._fundus_record_image_similarity_search(
             image_embedding,
             search_in_collections=search_in_collections,
-            top_k=int(top_k),
+            top_k=top_k,
         )
+        return results
 
     def find_fundus_records_with_images_similar_to_the_text_query(
         self,
@@ -666,7 +731,7 @@ class VectorDB(metaclass=SingletonMeta):
         Args:
             query (str): The text query.
             search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
@@ -679,11 +744,12 @@ class VectorDB(metaclass=SingletonMeta):
         text_embedding = self._fundus_ml_client.compute_text_embedding(
             query, return_tensor="np"
         ).tolist()  # type: ignore
-        return self._fundus_record_image_similarity_search(
+        results = self._fundus_record_image_similarity_search(
             text_embedding,
             search_in_collections=search_in_collections,
-            top_k=int(top_k),
+            top_k=top_k,
         )
+        return results
 
     def find_fundus_records_with_titles_similar_to_the_text_query(
         self,
@@ -700,7 +766,7 @@ class VectorDB(metaclass=SingletonMeta):
         Args:
             query (str): The text query.
             search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
@@ -713,17 +779,19 @@ class VectorDB(metaclass=SingletonMeta):
         text_embedding = self._fundus_ml_client.compute_text_embedding(
             query, return_tensor="np"
         ).tolist()  # type: ignore
-        return self._fundus_record_title_similarity_search(
+        results = self._fundus_record_title_similarity_search(
             text_embedding,
             search_in_collections=search_in_collections,
-            top_k=int(top_k),
+            top_k=top_k,
         )
+        return results
 
     def _fundus_record_image_similarity_search(
         self,
         query_embedding: list[float],
         search_in_collections: list[str] | None = None,
         top_k: int = 10,
+        return_internal_records: bool = False,
     ) -> list[FundusRecordSemanticSearchResult]:
         """
         Perform a similarity search of `FundusRecord`s based on their image embedding.
@@ -731,23 +799,27 @@ class VectorDB(metaclass=SingletonMeta):
         Args:
             query_embedding (list[float]): The query embedding vector.
             search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
+            return_internal_record (bool, optional): Whether to return FundusRecordInternal objects. Defaults to False.
 
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
         """
-        return self._fundus_record_similarity_search(
+        results = self._fundus_record_similarity_search(
             query_embedding=query_embedding,
             target_vector="record_image",
             search_in_collections=search_in_collections,
-            top_k=int(top_k),
+            top_k=top_k,
+            return_internal_records=return_internal_records,
         )
+        return results
 
     def _fundus_record_title_similarity_search(
         self,
         query_embedding: list[float],
         search_in_collections: list[str] | None = None,
         top_k: int = 10,
+        return_internal_records: bool = False,
     ) -> list[FundusRecordSemanticSearchResult]:
         """
         Perform a similarity search of `FundusRecord`s based on their title embedding.
@@ -755,17 +827,20 @@ class VectorDB(metaclass=SingletonMeta):
         Args:
             query_embedding (list[float]): The query embedding vector.
             search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
+            return_internal_record (bool, optional): Whether to return FundusRecordInternal objects. Defaults to False.
 
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
         """
-        return self._fundus_record_similarity_search(
+        results = self._fundus_record_similarity_search(
             query_embedding=query_embedding,
             target_vector="record_title",
             search_in_collections=search_in_collections,
-            top_k=int(top_k),
+            top_k=top_k,
+            return_internal_records=return_internal_records,
         )
+        return results
 
     def _fundus_record_similarity_search(
         self,
@@ -773,6 +848,7 @@ class VectorDB(metaclass=SingletonMeta):
         target_vector: Literal["record_image", "record_title"],
         search_in_collections: list[str] | None = None,
         top_k: int = 10,
+        return_internal_records: bool = False,
     ) -> list[FundusRecordSemanticSearchResult]:
         """
         Perform a similarity search of records via their image or title embedding.
@@ -781,7 +857,8 @@ class VectorDB(metaclass=SingletonMeta):
             query_embedding (list[float]): The query embedding vector.
             target_vector (Literal["record_image", "record_title"]): The target vector for the similarity search.
             search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
+            return_internal_record (bool, optional): Whether to return FundusRecordInternal objects with additional data. Defaults to False.
 
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
@@ -799,19 +876,37 @@ class VectorDB(metaclass=SingletonMeta):
             )
 
         collection = self._get_client().collections.get("FundusRecord")
+
+        # Set up query parameters based on whether we need internal record data
+        return_props = list(
+            filter(lambda c: c != "details", FundusRecord.model_fields.keys())
+        ) + [QueryNested(name="details", properties=["key", "value"])]
+        return_references = None
+        include_vector = False
+
+        if return_internal_records:
+            # Include image and parent collection reference for FundusRecordInternal
+            return_props.append("image")
+            return_references = QueryReference(link_on="parent_collection")
+            include_vector = ["record_image", "record_title"]
+
         results = collection.query.near_vector(
             query_embedding,
             target_vector=target_vector,
             filters=filters,
             limit=int(top_k),
             return_metadata=MetadataQuery(certainty=True, distance=True),
+            return_properties=return_props,
+            return_references=return_references,
+            include_vector=include_vector,
         )
+
         records = self._create_fundus_record_from_query_results(results)
 
         simsearch_results = []
         for record, res_obj in zip(records, results.objects):
             res = FundusRecordSemanticSearchResult(
-                **record.model_dump(),
+                record=record,
                 distance=res_obj.metadata.distance,  # type: ignore
                 certainty=res_obj.metadata.certainty,  # type: ignore
             )
@@ -875,35 +970,37 @@ class VectorDB(metaclass=SingletonMeta):
         Args:
             query (str): The search query.
             collection_name (str, optional): Name of the `FundusCollection` to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusRecord]: `FundusRecord`s matching the search query.
         """
 
-        return self._fundus_record_lexical_search(
+        results = self._fundus_record_lexical_search(
             query,
-            collection_name=collection_name,
-            top_k=int(top_k),
+            search_in_collections=[collection_name]
+            if collection_name is not None
+            else None,
+            top_k=top_k,
             search_in_title=True,
         )
+        return results
 
     def _fundus_record_lexical_search(
         self,
         query: str,
-        collection_name: str | None = None,
+        search_in_collections: list[str] | None = None,
         search_in_title: bool = True,
         top_k: int = 10,
     ) -> list[FundusRecord]:
         """
         Perform a lexical search for `FundusRecord`s using a query string.
-        Currently this searches only in the title field but can be extended to other fields in the details.
-        If `collection_name` is specified, the search will be restricted to the specified collection.
+        Currently this searches only in the title field but will be extended to other fields in the details.
 
         Args:
             query (str): The search query.
-            collection_name (str, optional): Name of the `FundusCollection` to restrict the search. Defaults to None.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusRecord]: `FundusRecord`s matching the search query.
@@ -913,23 +1010,29 @@ class VectorDB(metaclass=SingletonMeta):
                 "Currently only title search is supported. Please set `search_in_title=True`."
             )
 
-        if collection_name is not None:
-            collection_name = self._resolve_collection_name(collection_name)
+        filters = None
+        if search_in_collections is not None and len(search_in_collections) > 0:
+            filters = reduce(
+                operator.or_,
+                [
+                    Filter.by_property("collection_name").equal(
+                        self._resolve_collection_name(collection_name)
+                    )
+                    for collection_name in search_in_collections
+                ],
+            )
 
         collection = self._get_client().collections.get("FundusRecord")
-
-        filters = None
-        if collection_name is not None:
-            filters = Filter.by_property("collection_name").equal(collection_name)
 
         results = collection.query.bm25(
             query,
             query_properties=["title"],
             filters=filters,
-            limit=top_k,
+            limit=int(top_k),
         )
 
-        return self._create_fundus_record_from_query_results(results)
+        results = self._create_fundus_record_from_query_results(results)
+        return results
 
     def fundus_collection_lexical_search(
         self,
@@ -943,13 +1046,13 @@ class VectorDB(metaclass=SingletonMeta):
 
         Args:
             query (str): The search query.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusCollection]: `FundusCollection`s matching the search query.
         """
 
-        return self._fundus_collection_lexical_search(
+        results = self._fundus_collection_lexical_search(
             query,
             top_k=int(top_k),
             search_in_collection_name=True,
@@ -958,6 +1061,7 @@ class VectorDB(metaclass=SingletonMeta):
             search_in_german_title=True,
             search_in_german_description=True,
         )
+        return results
 
     def _fundus_collection_lexical_search(
         self,
@@ -975,7 +1079,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         Args:
             query (str): The search query.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
             search_in_collection_name (bool, optional): Search in collection IDs if True. Defaults to True.
             search_in_title (bool, optional): Search in English titles if True. Defaults to True.
             search_in_description (bool, optional): Search in English descriptions if True. Defaults to True.
@@ -1008,7 +1112,8 @@ class VectorDB(metaclass=SingletonMeta):
             limit=top_k,
         )
 
-        return self._create_fundus_collection_from_query_results(res)
+        results = self._create_fundus_collection_from_query_results(res)
+        return results
 
     def fundus_collection_description_similarity_search(
         self,
@@ -1020,16 +1125,17 @@ class VectorDB(metaclass=SingletonMeta):
 
         Args:
             query_embedding (list[float]): The query embedding vector.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusCollection]: `FundusCollection`s search results with similarity scores.
         """
-        return self._fundus_collection_similarity_search(
+        results = self._fundus_collection_similarity_search(
             query_embedding=query_embedding,
             target_vector="collection_description",
             top_k=int(top_k),
         )
+        return results
 
     def fundus_collection_title_similarity_search(
         self,
@@ -1041,16 +1147,17 @@ class VectorDB(metaclass=SingletonMeta):
 
         Args:
             query_embedding (list[float]): The query embedding vector.
-            top_k (int, optional): Number of top results to return. Defaults to 10.
+            top_k (int, optional): Number of top results to return. Defaults to 10
 
         Returns:
             list[FundusCollection]: `FundusCollection`s search results with similarity scores.
         """
-        return self._fundus_collection_similarity_search(
+        results = self._fundus_collection_similarity_search(
             query_embedding=query_embedding,
             target_vector="collection_title",
             top_k=int(top_k),
         )
+        return results
 
     def _fundus_collection_similarity_search(
         self,
@@ -1084,7 +1191,8 @@ class VectorDB(metaclass=SingletonMeta):
 
             simsearch_results.append(res)
 
-        return simsearch_results
+        results = simsearch_results
+        return results
 
     def get_number_of_records_per_collection(self) -> dict[str, int]:
         """
@@ -1093,7 +1201,8 @@ class VectorDB(metaclass=SingletonMeta):
         Returns:
             dict[str, int]: A dictionary with the collection name as key and the number of records as value.
         """
-        return self._records_df.groupby("collection_name").size().to_dict()  # type: ignore
+        results = self._records_df.groupby("collection_name").size().to_dict()  # type: ignore
+        return results
 
     def get_number_of_records_in_collection(self, collection_name: str) -> int:
         """
@@ -1103,6 +1212,7 @@ class VectorDB(metaclass=SingletonMeta):
             int: The number of records in the collection.
         """
         collection_name = self._resolve_collection_name(collection_name)
-        return len(
+        results = len(
             self._records_df[self._records_df["collection_name"] == collection_name]
         )
+        return results

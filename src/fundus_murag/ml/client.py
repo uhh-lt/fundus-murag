@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 from loguru import logger
 
+from fundus_murag.config import load_config
 from fundus_murag.ml.dto import EmbeddingsInput, EmbeddingsOutput
 from fundus_murag.singleton_meta import SingletonMeta
 
@@ -18,8 +19,6 @@ class FundusMLClient(metaclass=SingletonMeta):
         if fundus_ml_url is not None:
             self._fundus_ml_url = fundus_ml_url
         else:
-            from fundus_murag.config.config import load_config
-
             config = load_config()
             self._fundus_ml_url = config.fundus_ml_url
         self._wait_for_ready()

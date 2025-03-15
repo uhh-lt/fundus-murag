@@ -1,66 +1,6 @@
 from pydantic import BaseModel, Field
 
 
-class LexicalSearchQuery(BaseModel):
-    """
-    A `LexicalSearchQuery` represents a query for a lexical search based on a text query.
-
-
-    Attributes:
-        query (str): The search query.
-        top_k (int, optional): Number of top results to return. Defaults to 10.
-        search_in_collection_name (bool, optional): Search in collection IDs if True. Defaults to True.
-        search_in_title (bool, optional): Search in English titles if True. Defaults to True.
-        search_in_description (bool, optional): Search in English descriptions if True. Defaults to True.
-        search_in_german_title (bool, optional): Search in German titles if True. Defaults to True.
-        search_in_german_description (bool, optional): Search in German descriptions if True. Defaults to True.
-    """
-
-    query: str
-    top_k: int = 10
-    search_in_collection_name: bool = True
-    search_in_title: bool = True
-    search_in_description: bool = True
-    search_in_german_title: bool = True
-    search_in_german_description: bool = True
-
-
-class RecordLexicalSearchQuery(BaseModel):
-    """
-    A `RecordLexicalSearchQuery` represents a query for a lexical search of `FundusRecord`s by title.
-
-    Attributes:
-        query (str): The search query.
-        top_k (int, optional): Number of top results to return. Defaults to 10.
-        collection_name (str, optional): Restrict the search to a specific collection if provided.
-    """
-
-    query: str
-    top_k: int = 10
-    collection_name: str | None = None
-
-
-class EmbeddingQuery(BaseModel):
-    """
-    A `EmbeddingQuery` represents a query for similarity search based on an image embedding.
-
-    Attributes:
-        query_embedding (np.ndarray): The query embedding vector.
-        search_in_collections (list[str], optional): Collection IDs to restrict the search. Defaults to None.
-        top_k (int, optional): Number of top results to return. Defaults to 10.
-        return_image (bool, optional): Include image data if True. Defaults to False.
-        return_parent_collection (bool, optional): Include parent collection data if True. Defaults to False.
-        return_embeddings (bool, optional): Include embeddings if True. Defaults to False.
-    """
-
-    query_embedding: list[float]
-    search_in_collections: list[str] | None = None
-    top_k: int = 10
-    return_image: bool = False
-    return_parent_collection: bool = False
-    return_embeddings: bool = False
-
-
 class FundusCollectionContact(BaseModel):
     """
     A `FundusCollectionContact` represents a contact person for a `FundusCollection`.
@@ -126,7 +66,7 @@ class FundusCollection(BaseModel):
     collection_name: str
     title: str
     title_de: str
-    description: str = Field(default=None)
+    description: str
     description_de: str
     contacts: list[FundusCollectionContact] = Field(default_factory=list)
     title_fields: list[str] = Field(default_factory=list)
@@ -174,43 +114,18 @@ class FundusRecordInternal(FundusRecord):
     embeddings: dict[str, list[float]] = Field(default_factory=dict)
 
 
-class FundusRecordSemanticSearchResult(FundusRecord):
+class FundusRecordImage(BaseModel):
     """
-    A `FundusRecordSemanticSearchResult` represents a semantic search result record with additional details such as
-    certainty and distance scores.
+    A `FundusRecordImage` represents an image associated with a `FundusRecord`.
 
     Attributes:
-        certainty: float: The certainty score of the search result.
-        distance: float: The distance between the query and the search result.
+        murag_id (str): A unique identifier for the `FundusRecord` in the VectorDB.
+        fundus_id (int): An identifier for the `FundusRecord`. If a `FundusRecord` has multiple images, the records share the `fundus_id`.
+        image_name (str): The name of the image file associated with the `FundusRecord`.
+        base64_image (str): The base64 encoded image data of the `FundusRecord`.
     """
 
-    certainty: float
-    distance: float
-
-
-class FundusRecordInternalSemanticSearchResult(FundusRecordInternal):
-    """
-    A `FundusRecordInternalSemanticSearchResult` represents a semantic search result record with additional details such as
-    certainty and distance scores.
-
-    Attributes:
-        certainty: float: The certainty score of the search result.
-        distance: float: The distance between the query and the search result.
-    """
-
-    certainty: float
-    distance: float
-
-
-class FundusCollectionSemanticSearchResult(FundusCollection):
-    """
-    A `FundusCollectionSemanticSearchResult` represents a semantic search result for a `FundusCollection`,
-    including additional details such as certainty and distance scores.
-
-    Attributes:
-        certainty (float): The certainty score of the search result.
-        distance (float): The distance between the query and the search result.
-    """
-
-    certainty: float
-    distance: float
+    murag_id: str
+    fundus_id: int
+    image_name: str
+    base64_image: str

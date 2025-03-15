@@ -2,7 +2,7 @@ import json
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from fundus_murag.data.dto import FundusRecordInternal
+from fundus_murag.data.dtos.fundus import FundusRecordInternal
 
 
 class BaseImageAnalysisAssistant(ABC):
