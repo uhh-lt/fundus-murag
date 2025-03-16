@@ -45,17 +45,17 @@ class VectorDB(metaclass=SingletonMeta):
     def __init__(self):
         self._config = load_config()
         self._client = self._connect_to_weaviate()
-        self._fundus_ml_client = FundusMLClient(self._config.fundus_ml_url)
+        self._fundus_ml_client = FundusMLClient(self._config.fundus.ml_url)
         self._query_rewriter = GeminiQueryRewriterAssistant()
 
         # we load the dataframes because some operations are faster and much easier to do in pandas
         self._records_df = load_fundus_records_df(
-            self._config.fundus_records_df_file,
-            self._config.dev_mode,
+            self._config.data.records_df_file,
+            self._config.app.dev_mode,
         )
         self._collections_df = load_fundus_collections_df(
             self._records_df,
-            self._config.fundus_collections_df_file,
+            self._config.data.collections_df_file,
         )
 
         self._import_fundus_data(
@@ -89,20 +89,20 @@ class VectorDB(metaclass=SingletonMeta):
         self, raise_on_error: bool = False
     ) -> weaviate.WeaviateClient:
         client = weaviate.connect_to_custom(
-            http_host=self._config.weaviate_host,
-            http_port=self._config.weaviate_http_port,
+            http_host=self._config.weaviate.host,
+            http_port=self._config.weaviate.http_port,
             http_secure=False,
-            grpc_host=self._config.weaviate_host,
-            grpc_port=self._config.weaviate_grpc_port,
+            grpc_host=self._config.weaviate.host,
+            grpc_port=self._config.weaviate.grpc_port,
             grpc_secure=False,
         )
         if not client.is_ready():
-            msg = f"Cannot connect to Weaviate {self._config.weaviate_host}:{self._config.weaviate_http_port}!"
+            msg = f"Cannot connect to Weaviate {self._config.weaviate.host}:{self._config.weaviate.http_port}!"
             logger.warning(msg)
             if raise_on_error:
                 raise ConnectionError(msg)
         logger.info(
-            f"Connected to Weaviate {self._config.weaviate_host}:{self._config.weaviate_http_port}"
+            f"Connected to Weaviate {self._config.weaviate.host}:{self._config.weaviate.http_port}"
         )
         return client
 
@@ -270,17 +270,17 @@ class VectorDB(metaclass=SingletonMeta):
         records_df: pd.DataFrame,
         collections_df: pd.DataFrame,
     ) -> None:
-        if self._config.reset_vdb_on_startup:
+        if self._config.app.reset_vdb_on_startup:
             self._delete_all_data()
         if not self.is_initialized():
             logger.info("Importing FUNDus! data...")
             record_embeddings_df = load_fundus_record_embeddings_df(
                 self._records_df,
-                self._config.fundus_record_embeddings_df_file,
-                self._config.dev_mode,
+                self._config.data.record_embeddings_df_file,
+                self._config.app.dev_mode,
             )
             collection_embeddings_df = load_fundus_collection_embeddings_df(
-                self._config.fundus_collections_embeddings_df_file,
+                self._config.data.collections_embeddings_df_file,
             )
 
             self._import_fundus_collections(collections_df, collection_embeddings_df)

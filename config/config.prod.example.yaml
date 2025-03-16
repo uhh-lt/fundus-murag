@@ -1,41 +1,42 @@
 # This config assumes that the app is started within the Docker container. Usually, you only need to change the values in the <...> placeholders.
 
-logging_dir: /data/logs
-logging_level: ${oc.env:LOGGING_LEVEL,DEBUG}
+# Logging configuration
+logging:
+  dir: /data/logs
+  level: INFO
 
-# the path to the records dataframe file
-fundus_records_df_file: /data/records.pq
-# the path to the collections dataframe file
-fundus_collections_df_file: /data/collections.pq
-# the path to the record embeddings dataframe file
-fundus_record_embeddings_df_file: /data/record_embeddings.pq
-# the path to the collection embeddings dataframe file
-fundus_collections_embeddings_df_file: /data/collection_embeddings.pq
+# Data files configuration
+data:
+  records_df_file: /data/records.pq
+  collections_df_file: /data/collections.pq
+  record_embeddings_df_file: /data/record_embeddings.pq
+  collections_embeddings_df_file: /data/collection_embeddings.pq
 
-# whether the app is in dev mode
-dev_mode: False
-# whether to reset the vector database on startup
-reset_vdb_on_startup: False
+# Application settings
+app:
+  dev_mode: False
+  reset_vdb_on_startup: False
 
-# the host of the weaviate instance
-weaviate_host: weaviate
-# the http port of the weaviate instance. Keep this as is unless you changed the port in the `docker/docker-compose.yaml` file
-weaviate_http_port: 8080
-# the grpc port of the weaviate instance. Keep this as is unless you changed the port in the `docker/docker-compose.yaml` file
-weaviate_grpc_port: 50051
+# Weaviate database configuration
+weaviate:
+  host: weaviate
+  http_port: 8080  # Keep this as is unless you changed the port in the `docker/docker-compose.yaml` file
+  grpc_port: 50051  # Keep this as is unless you changed the port in the `docker/docker-compose.yaml` file
 
-# the google project id
-google_project_id: <GOOGLE_PROJECT_ID>
-# the google default location
-google_default_location: "us-central1"
-# the path to the google application credentials file
-google_application_credentials_file: <PATH_TO_GOOGLE_APPLICATION_CREDENTIALS_FILE>
+# Google Cloud configuration
+google:
+  project_id: <GOOGLE_PROJECT_ID>
+  default_location: "us-central1"
+  application_credentials_file: <PATH_TO_GOOGLE_APPLICATION_CREDENTIALS_FILE>
 
-# the open ai api key
-open_ai_api_key: <OPEN_AI_API_KEY>
+# OpenAI configuration
+openai:
+  api_key: <OPEN_AI_API_KEY>
 
-# the url to the FUNDus ML service. Use the port you defined in the .env.prod file in the `docker` folder
-fundus_ml_url: http://fundus-murag-ml:<FUNDUS_ML_EXPOSED>
+# FUNDus service configuration
+fundus:
+  ml_url: http://fundus-murag-ml:<FUNDUS_ML_EXPOSED>  # Use the port you defined in the .env.prod file in the `docker` folder
 
-# the default model for the FUNDus Assistant
-assistant_default_model: "google/gemini-2.0-flash"
+# Assistant configuration
+assistant:
+  default_model: "google/gemini-2.0-flash"

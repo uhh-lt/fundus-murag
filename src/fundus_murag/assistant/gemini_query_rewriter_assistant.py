@@ -33,12 +33,12 @@ class GeminiQueryRewriterAssistant(metaclass=SingletonMeta):
             model_name = MODEL_NAME
         conf = load_config()
         creds = Credentials.from_service_account_file(
-            conf.google_application_credentials_file
+            conf.google.application_credentials_file
         )
 
         vertexai.init(
             credentials=creds,
-            project=conf.google_project_id,
+            project=conf.google.project_id,
             location="europe-west3",
         )
         genai.configure(credentials=creds)
