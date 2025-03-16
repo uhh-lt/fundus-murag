@@ -13,13 +13,6 @@ from fundus_murag.assistant.gemini_query_rewriter_assistant import (
     GeminiQueryRewriterAssistant,
 )
 from fundus_murag.config import load_config
-from fundus_murag.data.config import (
-    FUNDUS_COLLECTION_SCHEMA_NAME,
-    FUNDUS_COLLECTION_SCHEMA_VECTORIZER,
-    FUNDUS_RECORD_SCHEMA_NAME,
-    FUNDUS_RECORD_SCHEMA_REFS,
-    FUNDUS_RECORD_SCHEMA_VECTORIZER,
-)
 from fundus_murag.data.dtos.fundus import (
     FundusCollection,
     FundusRecord,
@@ -29,6 +22,13 @@ from fundus_murag.data.dtos.fundus import (
 from fundus_murag.data.dtos.vector_db import (
     FundusCollectionSemanticSearchResult,
     FundusRecordSemanticSearchResult,
+)
+from fundus_murag.data.schema import (
+    FUNDUS_COLLECTION_SCHEMA_NAME,
+    FUNDUS_COLLECTION_SCHEMA_VECTORIZER,
+    FUNDUS_RECORD_SCHEMA_NAME,
+    FUNDUS_RECORD_SCHEMA_REFS,
+    FUNDUS_RECORD_SCHEMA_VECTORIZER,
 )
 from fundus_murag.data.utils import (
     load_fundus_collection_embeddings_df,
