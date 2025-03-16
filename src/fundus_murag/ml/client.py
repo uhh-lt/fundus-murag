@@ -20,7 +20,8 @@ class FundusMLClient(metaclass=SingletonMeta):
             self._fundus_ml_url = fundus_ml_url
         else:
             config = load_config()
-            self._fundus_ml_url = config.fundus_ml_url
+            self._fundus_ml_url = config.fundus.ml_url
+
         self._wait_for_ready()
 
     def _wait_for_ready(self, s: int = 60, sleep_t: int = 3) -> None:
@@ -33,6 +34,7 @@ class FundusMLClient(metaclass=SingletonMeta):
             )
             time.sleep(sleep_t)
             s -= sleep_t
+
         raise TimeoutError(f"Fundus ML is not ready at {self._fundus_ml_url}!")
 
     def _is_ready(self) -> bool:

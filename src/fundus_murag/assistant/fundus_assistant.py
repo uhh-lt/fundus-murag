@@ -49,7 +49,7 @@ class FundusAssistant:
         available_tools: list[FundusTool] | None = None,
     ):
         self._conf = load_config()
-        self.model_name = model_name or self._conf.assistant_default_model
+        self.model_name = model_name or self._conf.assistant.default_model
         if not self.is_model_available(self.model_name):
             raise ValueError(f"Model '{self.model_name}' is not available.")
         # currently the default System Instruction is the ASSISTANT_SYSTEM_INSTRUCTION if not provided
@@ -146,7 +146,7 @@ class FundusAssistant:
     @staticmethod
     def get_default_model() -> AssistantModel:
         conf = load_config()
-        default = conf.assistant_default_model
+        default = conf.assistant.default_model
         available = FundusAssistant.list_available_models()
         model = available[available["name"] == default]
         if model.empty:
@@ -175,8 +175,8 @@ class FundusAssistant:
     def __get_vertexai_openai_client(self) -> openai.OpenAI:
         logger.debug("Creating client for VertexAI Models.")
         # https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/call-vertex-using-openai-library
-        project_id = self._conf.google_project_id
-        location = self._conf.google_default_location
+        project_id = self._conf.google.project_id
+        location = self._conf.google.default_location
 
         credentials, _ = default(
             scopes=["https://www.googleapis.com/auth/cloud-platform"]

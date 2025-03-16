@@ -33,9 +33,12 @@ class LoguruHandler(logging.Handler):
 
 def setup_logging():
     cfg = load_config()
-    log_dir = Path(cfg.logging_dir)
+
+    # Updated to use nested config structure
+    log_dir = Path(cfg.logging.dir)
     log_dir.mkdir(parents=True, exist_ok=True)
-    log_level = cfg.logging_level
+
+    log_level = cfg.logging.level
 
     log_format = (
         "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | "

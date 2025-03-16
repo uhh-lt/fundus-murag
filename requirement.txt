@@ -15,6 +15,7 @@ pillow==10.4.0
 protobuf==5.28.2
 pyarrow==17.0.0
 pydantic==2.7.4
+pydantic-settings==2.8.1
 srsly==2.4.8
 tqdm==4.66.5
 weaviate-client==4.8.1
