@@ -1,0 +1,124 @@
+services:
+  fundus-murag-ml:
+    image: p0w3r/fundus-murag-ml:latest
+    user: ${UID:-1000}:${GID:-1000}
+    environment:
+      - TRANSFORMERS_CACHEe=/models_cache
+      - HUGGINGFACE_HUB_CACHE=/models_cache
+      - TORCH_HOME=/models_cache
+      - FUNDUS_ML_DEV_MODE=${FUNDUS_ML_DEV_MODE:-False}
+    volumes:
+      - ./models_cache:/models_cache
+    ports:
+      - "${FUNDUS_ML_EXPOSED}:8000"
+    restart: on-failure
+    profiles:
+      - fundusml
+    networks:
+      - fundus_murag
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: [ "1" ]
+              capabilities: [ gpu ]
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
+    user: ${UID:-1000}:${GID:-1000}
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --scheme
+      - http
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_MODULES: ""
+      CLUSTER_HOSTNAME: "node1"
+    volumes:
+      - ./weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    networks:
+      - fundus_murag
+    profiles:
+      - weaviate
+
+
+  weaviate-dev:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
+    user: ${UID:-1000}:${GID:-1000}
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --scheme
+      - http
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_MODULES: ""
+      CLUSTER_HOSTNAME: "node1"
+    ports:
+      - "${WEAVIATE_HTTP_EXPOSED}:8080"
+      - "${WEAVIATE_GRPC_EXPOSED}:50051"
+    volumes:
+      - ./weaviate_data-dev:/var/lib/weaviate
+    restart: on-failure:0
+    networks:
+      - fundus_murag
+    profiles:
+      - weaviate-dev
+
+
+  fundus-murag-frontend:
+    image: p0w3r/fundus_murag_frontend:latest
+    environment:
+      - VITE_FUNDUS_API_URL=${VITE_FUNDUS_API_URL:-http://fundus-murag-backend:8000}
+    ports:
+      - "${FRONTEND_EXPOSED:-8080}:80"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:80/heartbeat || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: on-failure
+    networks:
+      - fundus_murag
+    depends_on:
+      - fundus-murag-backend
+    profiles:
+      - frontend
+
+
+  fundus-murag-backend:
+    image: p0w3r/fundus_murag_backend:latest
+    user: ${UID:-1000}:${GID:-1000}
+    environment:
+      - FUNDUS_CONFIG_FILE=/config/config.prod.yaml
+    ports:
+      - "${BACKEND_EXPOSED:-8000}:8000"
+    volumes:
+      - ../data:/data
+      - ../config:/config
+      - ./fundus-murag-backend-logs:/logs
+    restart: on-failure
+    networks:
+      - fundus_murag
+    depends_on:
+      - weaviate
+      - fundus-murag-ml
+    profiles:
+      - backend
+
+networks:
+  fundus_murag:
+    external: false

@@ -18,19 +18,14 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US.UTF-8
 
 # Install dependencies
+WORKDIR /code
+
 RUN --mount=type=cache,target=/root/.cache \
     pip install uv
-COPY fundus_murag/requirements.txt .
+COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache \
-    uv pip install -r requirements.txt
+    uv pip install -r requirements.txt --system
 
-# Create non-root user
-RUN groupadd -g 900 mesop && useradd -u 900 -s /bin/bash -g mesop mesop
-USER mesop
+COPY fundus_murag /code/fundus_murag
 
-# Add app code here
-COPY . /srv/mesop-app
-WORKDIR /srv/mesop-app
-
-# Run Mesop through gunicorn. Should be available at localhost:8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "fundus_murag.ui.main:me"]
+CMD ["fastapi", "run", "fundus_murag/main.py", "--host", "0.0.0.0", "--port", "8000"]

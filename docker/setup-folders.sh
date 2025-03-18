@@ -13,10 +13,10 @@ else
   echo "weaviate_data-dev already exists"
 fi
 
-if [ ! -d "fundus-murag-ui-logs" ]; then
-  mkdir -v fundus-murag-ui-logs
+if [ ! -d "fundus-murag-backend-logs" ]; then
+  mkdir -v fundus-murag-backend-logs
 else
-  echo "fundus-murag-ui-logs already exists"
+  echo "fundus-murag-backend-logs already exists"
 fi
 
 if [ ! -d "models_cache" ]; then
