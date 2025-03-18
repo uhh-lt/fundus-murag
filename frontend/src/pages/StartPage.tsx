@@ -76,7 +76,7 @@ const StartPage: React.FC = () => {
                         padding: 2,
                         borderRadius: 2,
                         minHeight: "50vh",
-                        maxHeight: "50vh",
+                        maxHeight: "80vh",
                         width: "100%",
                     }}
                 >
