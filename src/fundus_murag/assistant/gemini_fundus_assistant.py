@@ -6,6 +6,7 @@ from google.oauth2.service_account import Credentials
 from loguru import logger
 from vertexai.generative_models import (
     ChatSession,
+    Content,
     GenerationConfig,
     GenerationResponse,
     GenerativeModel,
@@ -115,11 +116,35 @@ class GeminiFundusAssistant(metaclass=SingletonMeta):
 
         return messages
 
+    def append_chat_message_to_history(self, role: str, content: str):
+        """
+        Append a predefined chat message to the history without waiting for a model's response.
+
+        Args:
+            role: The role of the message ('user' or 'model').
+            content: The content of the message to append.
+        """
+        if self._chat_session is None:
+            self.reset_chat_session()
+            self._chat_session = self._model.start_chat()
+
+        # Convert ChatMessage into Part
+        part = Part.from_text(content)
+
+        # Create a Content object using the Part and role
+        content_object = Content(parts=[part], role=role)
+
+        # Manually append the Content object to the chat history
+        self._chat_session.history.append(content_object)
+
+        logger.info(f"Appended message to history: {role} - {content}")
+
     def load_model(self, model_name: str, use_tools: bool) -> GenerativeModel:
         model_name = model_name.lower()
         if "/" in model_name:
             model_name = model_name.split("/")[-1]
-
+        # GenerativeModel is imported from vertexai.generative_models, it is part of Google's Vertex AI SDK.
+        # This SDK is designed to interact with Google Cloud's AI services, not OpenAI's models
         model = GenerativeModel(
             model_name=model_name,
             generation_config=GEMINI_GENERATION_CONFIG,
