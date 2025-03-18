@@ -6,7 +6,6 @@ google-cloud-aiplatform==1.70.0
 google-generativeai==0.8.3
 gunicorn==23.0.0
 loguru==0.7.3
-mesop==0.14.1
 openai==1.6.6
 pandas==2.2.3
 pillow==10.4.0
