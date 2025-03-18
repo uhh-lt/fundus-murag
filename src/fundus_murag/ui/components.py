@@ -150,10 +150,10 @@ def submit_input_textarea():
     state = me.state(AppState)
     current_user_input = state.current_user_input.strip()
     if current_user_input != "":
-        assistant, chat_session_id = __ASSISTANT_FACTORY__.get_or_create_assistant(
+        assistant, chat_session = __ASSISTANT_FACTORY__.get_or_create_assistant(
             session_id=state.chat_session_id
         )
-        state.chat_session_id = chat_session_id
+        state.chat_session_id = chat_session.session_id
         messages = assistant.get_converstation_history()
         if len(messages) == 0:
             me.navigate("/conversation")
@@ -323,10 +323,10 @@ def conversations_display_component():
         )
     ):
         state = me.state(AppState)
-        assistant, chat_session_id = __ASSISTANT_FACTORY__.get_or_create_assistant(
+        assistant, chat_session = __ASSISTANT_FACTORY__.get_or_create_assistant(
             session_id=state.chat_session_id
         )
-        state.chat_session_id = chat_session_id
+        state.chat_session_id = chat_session.session_id
         messages = assistant.get_converstation_history()
         if not messages:
             return

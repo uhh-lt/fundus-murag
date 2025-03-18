@@ -9,22 +9,14 @@ class MessageRequest(BaseModel):
         None,
         description="Base64 encoded images that gets appended to the text message.",
     )
-    model_name: str = Field(
+    model_name: str | None = Field(
         "google/gemini-2.0-flash",
-        description="The name of the model to use for the assistant. The model must be available in the system.",
+        description="The name of the model to use for the assistant. The model must be available in the system. If a session ID is provided, this field is ignored.",
     )
     session_id: str | None = Field(
         None,
         description="The session ID to use for the assistant. If None, a new session is created.",
     )
-
-
-class AssistantResponse(BaseModel):
-    """Response model for assistant interactions."""
-
-    message: str
-    session_id: str
-    model_name: str
 
 
 class AssistantModel(BaseModel):
@@ -40,6 +32,13 @@ class AssistantSession(BaseModel):
     session_id: str
     model_name: str
     created: int
+
+
+class AssistantResponse(BaseModel):
+    """Response model for assistant interactions."""
+
+    message: str
+    session: AssistantSession
 
 
 class ChatMessage(BaseModel):

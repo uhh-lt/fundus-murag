@@ -24,7 +24,7 @@ class AssistantFactory(metaclass=SingletonMeta):
         model_name: str | None = None,
         system_instruction: str | None = None,
         session_id: str | None = None,
-    ) -> tuple[FundusAssistant, str]:
+    ) -> tuple[FundusAssistant, AssistantSession]:
         self.__delete_old_sessions()
 
         if session_id is not None and session_id != "":
@@ -43,7 +43,13 @@ class AssistantFactory(metaclass=SingletonMeta):
             )
             self.__sessions[session_id] = assistant
 
-        return assistant, session_id
+        session = AssistantSession(
+            session_id=session_id,
+            model_name=assistant.model_name,
+            created=int(self.__session_timestamps[session_id]),
+        )
+
+        return assistant, session
 
     def delete_session(self, session_id: str) -> bool:
         if session_id in self.__sessions:
