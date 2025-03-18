@@ -72,8 +72,7 @@ const StartPage: React.FC = () => {
                 sx={{
                     padding: 2,
                     borderRadius: 2,
-                    minWidth: { xl: "50%", md: "80%", xs: "100%" },
-                    maxWidth: { xl: "50%", md: "80%", xs: "100%" },
+                    width: { xl: "60vw", md: "80vw", xs: "100vw" },
                 }}
             >
                 <Box sx={{ display: "flex", justifyContent: "center" }}>

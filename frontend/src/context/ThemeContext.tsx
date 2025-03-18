@@ -1,4 +1,4 @@
-import { deepOrange, teal } from "@mui/material/colors";
+import { amber, teal } from "@mui/material/colors";
 import { ThemeProvider as MuiThemeProvider, createTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -28,7 +28,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         palette: {
             mode,
             primary: teal,
-            secondary: deepOrange,
+            secondary: amber,
         },
     });
 

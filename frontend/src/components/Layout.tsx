@@ -15,8 +15,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <Box
             sx={{
-                minHeight: "100vh",
-                minWidth: "100vw",
+                height: "100vh",
+                width: "100vw",
                 m: 0,
                 p: 0,
                 position: "fixed",
@@ -37,10 +37,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </AppBar>
             <Box
                 sx={{
-                    minWidth: "100vw",
-                    maxWidth: "100vw",
-                    minHeight: "calc(100vh - 64px)",
-                    maxHeight: "calc(100vh - 64px)",
+                    width: "100vw",
+                    height: "calc(100vh - 64px)",
                     mt: "64px",
                     display: "flex",
                     justifyContent: "center",
