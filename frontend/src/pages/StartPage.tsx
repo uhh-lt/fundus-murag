@@ -1,4 +1,4 @@
-import { Alert, Box, CircularProgress, Container, Divider, Paper, Typography } from "@mui/material";
+import { Alert, Box, CircularProgress, Divider, Paper, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ExamplePrompts from "../components/ExamplePrompts";
@@ -67,66 +67,61 @@ const StartPage: React.FC = () => {
 
     return (
         <Layout>
-            <Container sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-                <Paper
-                    elevation={16}
-                    sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        padding: 2,
-                        borderRadius: 2,
-                        minHeight: "50vh",
-                        maxHeight: "80vh",
-                        width: "100%",
-                    }}
-                >
-                    <Box sx={{ display: "flex", justifyContent: "center" }}>
-                        <Typography variant="h5" gutterBottom>
-                            🔮 Explore FUNDus!
-                        </Typography>
+            <Paper
+                elevation={16}
+                sx={{
+                    padding: 2,
+                    borderRadius: 2,
+                    minWidth: { xl: "50%", md: "80%", xs: "100%" },
+                    maxWidth: { xl: "50%", md: "80%", xs: "100%" },
+                }}
+            >
+                <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <Typography variant="h5" gutterBottom>
+                        🔮 Explore FUNDus!
+                    </Typography>
+                </Box>
+
+                {assistantServiceLoading && (
+                    <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+                        <CircularProgress />
                     </Box>
+                )}
 
-                    {assistantServiceLoading && (
-                        <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
-                            <CircularProgress />
-                        </Box>
-                    )}
+                {assistantServiceError && (
+                    <Box sx={{ p: 2, width: "100%" }}>
+                        <Alert severity="error">Error Loading Models!</Alert>
+                    </Box>
+                )}
 
-                    {assistantServiceError && (
-                        <Box sx={{ p: 2, width: "100%" }}>
-                            <Alert severity="error">Error Loading Models!</Alert>
-                        </Box>
-                    )}
+                {availableModels.length === 0 && !assistantServiceLoading && !assistantServiceError && (
+                    <Alert severity="warning">No models available!</Alert>
+                )}
 
-                    {availableModels.length === 0 && !assistantServiceLoading && !assistantServiceError && (
-                        <Alert severity="warning">No models available!</Alert>
-                    )}
+                {availableModels.length > 0 && (
+                    <>
+                        <ModelPicker
+                            selectedModel={selectedModel}
+                            models={availableModels}
+                            onModelChange={handleModelChange}
+                            isLoading={assistantServiceLoading}
+                            isError={!!assistantServiceError}
+                        />
 
-                    {availableModels.length > 0 && (
-                        <>
-                            <ModelPicker
-                                selectedModel={selectedModel}
-                                models={availableModels}
-                                onModelChange={handleModelChange}
-                                isLoading={assistantServiceLoading}
-                                isError={!!assistantServiceError}
+                        <Divider sx={{ marginY: 2 }} />
+
+                        <ExamplePrompts onSelectExample={handleSelectExample} />
+
+                        <Box sx={{ mt: "auto" }}>
+                            <ChatInput
+                                onSendMessage={handleSendMessage}
+                                onReset={() => {}}
+                                disabled={!selectedModel || assistantServiceLoading || !!assistantServiceError}
                             />
-
-                            <Divider sx={{ marginY: 2 }} />
-
-                            <ExamplePrompts onSelectExample={handleSelectExample} />
-
-                            <Box sx={{ mt: "auto" }}>
-                                <ChatInput
-                                    onSendMessage={handleSendMessage}
-                                    onReset={() => {}}
-                                    disabled={!selectedModel || assistantServiceLoading || !!assistantServiceError}
-                                />
-                            </Box>
-                        </>
-                    )}
-                </Paper>
-            </Container>
+                        </Box>
+                    </>
+                )}
+            </Paper>
         </Layout>
     );
 };

@@ -33,7 +33,8 @@ const ExamplePrompts: React.FC<ExamplePromptsProps> = ({ onSelectExample }) => {
                                     cursor: "pointer",
                                     height: "100%",
                                     borderRadius: 2,
-                                    bgcolor: "primary.light",
+                                    bgcolor: "primary.main",
+                                    color: "primary.contrastText",
                                     p: 2,
                                 }}
                             >

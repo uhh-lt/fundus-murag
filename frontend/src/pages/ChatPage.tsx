@@ -1,4 +1,4 @@
-import { Alert, Box, Container, Divider, Paper, Typography } from "@mui/material";
+import { Alert, Box, Divider, Paper, Typography } from "@mui/material";
 import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -92,27 +92,34 @@ const ChatPage: React.FC = () => {
 
     return (
         <Layout>
-            <Container
+            <Box
                 sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    minHeight: "100vh",
-                    maxHeight: "100vh",
-                    maxWidth: "100%",
-                    minWidth: "60%",
+                    minWidth: { xl: "50vw", md: "80vw", xs: "100vw" },
+                    maxWidth: { xl: "50vw", md: "80vw", xs: "100vw" },
                 }}
             >
                 {assistantServiceError && <Alert severity="error">Error Communicating with Assistant!</Alert>}
                 {!assistantServiceError && (
-                    <Paper elevation={3} sx={{ padding: 3, borderRadius: 2, width: "100%" }}>
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            p: 2,
+                            borderRadius: 2,
+                        }}
+                    >
                         <Typography variant="h6">
                             🔮 Chat with <strong>FUNDus! Assistant</strong> using <em>{selectedModel.display_name}</em>
                         </Typography>
 
                         <Divider sx={{ my: 2 }} />
 
-                        <Box sx={{ minHeight: "70vh", maxHeight: "70vh", overflow: "auto" }}>
+                        <Box
+                            sx={{
+                                // minHeight: { xs: "60vh", sm: "65vh", md: "70vh" },
+                                overflow: "auto",
+                                px: { xs: 1, sm: 2 },
+                            }}
+                        >
                             {messages.map((msg, i) => (
                                 <ChatMessage
                                     key={`msg-${i}`}
@@ -136,7 +143,7 @@ const ChatPage: React.FC = () => {
                         />
                     </Paper>
                 )}
-            </Container>
+            </Box>
         </Layout>
     );
 };
