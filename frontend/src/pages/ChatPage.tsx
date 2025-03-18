@@ -94,29 +94,32 @@ const ChatPage: React.FC = () => {
         <Layout>
             <Box
                 sx={{
-                    minWidth: { xl: "50vw", md: "80vw", xs: "100vw" },
-                    maxWidth: { xl: "50vw", md: "80vw", xs: "100vw" },
+                    width: { xl: "60vw", md: "80vw", xs: "100vw" },
+                    height: "85vh",
                 }}
             >
                 {assistantServiceError && <Alert severity="error">Error Communicating with Assistant!</Alert>}
                 {!assistantServiceError && (
                     <Paper
-                        elevation={3}
+                        elevation={16}
                         sx={{
                             p: 2,
                             borderRadius: 2,
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
                         }}
                     >
                         <Typography variant="h6">
                             🔮 Chat with <strong>FUNDus! Assistant</strong> using <em>{selectedModel.display_name}</em>
                         </Typography>
 
-                        <Divider sx={{ my: 2 }} />
+                        <Divider sx={{ my: 1 }} />
 
                         <Box
                             sx={{
-                                // minHeight: { xs: "60vh", sm: "65vh", md: "70vh" },
-                                overflow: "auto",
+                                overflow: "scroll",
+                                height: "100%",
                                 px: { xs: 1, sm: 2 },
                             }}
                         >
@@ -135,6 +138,8 @@ const ChatPage: React.FC = () => {
                             )}
                             <div ref={messagesEndRef} />
                         </Box>
+
+                        <Divider sx={{ my: 1 }} />
 
                         <ChatInput
                             onSendMessage={handleSendMessage}

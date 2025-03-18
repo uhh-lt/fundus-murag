@@ -85,7 +85,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
             <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
                 <Paper
                     elevation={4}
-                    sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "secondary.light", maxWidth: "80%", minWidth: "40%" }}
+                    sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "secondary.main", maxWidth: "80%", minWidth: "40%" }}
                 >
                     <Typography variant="subtitle2">{senderName}</Typography>
                     <Divider />
@@ -99,7 +99,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
 
                         {/* Render FundusRecord components in a Grid layout */}
                         {recordIds.length > 0 && (
-                            <Grid container spacing={2} columns={{ xs: 12, sm: 12, md: 12 }}>
+                            <Grid container spacing={2} columns={12}>
                                 {recordIds.map((id, index) => (
                                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={`record-${id}-${index}`}>
                                         <FundusRecordCard muragId={id} />
@@ -123,9 +123,11 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Paper
                 elevation={4}
-                sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "primary.light", maxWidth: "80%", minWidth: "40%" }}
+                sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "primary.main", maxWidth: "80%", minWidth: "40%" }}
             >
-                <Typography variant="subtitle2">{senderName}</Typography>
+                <Typography variant="subtitle2" align="right">
+                    {senderName}
+                </Typography>
                 <Divider />
                 <Box mt={1}>
                     <Typography component="div" sx={{ whiteSpace: "pre-wrap" }}>

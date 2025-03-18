@@ -178,11 +178,6 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                 sx={{
                     display: "flex",
                     flexDirection: "column",
-                    maxWidth: 350,
-                    minWidth: 350,
-                    maxHeight: 350,
-                    minHeight: 350,
-                    my: 2,
                 }}
                 elevation={5}
                 onClick={handleOpenModal}
@@ -195,7 +190,15 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                         alt={record.title}
                     />
                     <CardContent>
-                        <Typography gutterBottom variant="body1" fontWeight="bold" component="div">
+                        <Typography
+                            gutterBottom
+                            variant="body1"
+                            fontWeight="bold"
+                            component="div"
+                            sx={{
+                                minHeight: "3em",
+                            }}
+                        >
                             {record.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
