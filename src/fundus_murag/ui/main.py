@@ -59,6 +59,7 @@ from fundus_murag.ui.components import (
     examples_row_component,
     model_picker_component,
     page_header_component,
+    upload_image_component,
 )
 from fundus_murag.ui.config import APP_NAME, APP_WIDTH, ROOT_BOX_STYLE, STYLESHEETS
 from fundus_murag.ui.model_picker_dialog import model_picker_dialog
@@ -99,6 +100,7 @@ def on_start_page_load(e: me.LoadEvent):
 )
 def start_page():
     model_picker_dialog()
+    fundus_record_dialog()
     with me.box(style=ROOT_BOX_STYLE):
         page_header_component()
         with me.box(
@@ -189,3 +191,11 @@ def conversation_page():
                 )
             ):
                 chat_input_component()
+
+
+@me.page(
+    path="/upload-image",
+    title="Upload an Image",
+)
+def upload_image_page():
+    upload_image_component()
