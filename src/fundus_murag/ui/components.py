@@ -1,9 +1,17 @@
+import base64
+import dataclasses
+import io
+from typing import List
+
 import mesop as me
+import numpy as np
+from PIL import Image
 
 from fundus_murag.assistant.dto import ChatMessage
 from fundus_murag.assistant.gemini_fundus_assistant import GeminiFundusAssistant
-from fundus_murag.data.dto import FundusCollection, FundusRecordInternal
+from fundus_murag.data.dto import EmbeddingQuery, FundusCollection, FundusRecordInternal
 from fundus_murag.data.vector_db import VectorDB
+from fundus_murag.ml.client import FundusMLClient
 from fundus_murag.ui.config import APP_NAME, EXAMPLES
 from fundus_murag.ui.state import AppState, reset_app_state
 from fundus_murag.ui.utils import (
@@ -15,6 +23,7 @@ from fundus_murag.ui.utils import (
     replace_fundus_record_render_tag,
 )
 
+ml_client = FundusMLClient()
 __VDB__ = VectorDB()
 
 
@@ -52,11 +61,46 @@ def examples_row_component():
             gap=16,
             margin=me.Margin(bottom=24),
             align_items="stretch",
-            justify_content="space-between",
+            # justify_content="space-between",
+            justify_content="start",
+            flex_wrap="wrap",  # Allows wrapping if space is insufficient
         )
     ):
         for ex in EXAMPLES:
             example_box_component(ex)
+
+        # Add a new purple box for image upload
+        def on_upload_click(e: me.ClickEvent):
+            me.navigate("/upload-image")  # Redirect to the image upload page
+
+        with me.tooltip(
+            message="Click to upload an image",
+            position_at_origin=True,
+            position="below",
+        ):
+            with me.box(
+                key="upload_image",
+                on_click=on_upload_click,
+                style=me.Style(
+                    background="#8e44ad",  # Purple color
+                    color="white",
+                    cursor="pointer",
+                    width="175px",
+                    height="100px",
+                    font_weight=500,
+                    line_height="1.5",
+                    padding=me.Padding.all(8),
+                    border_radius=16,
+                    border=me.Border.all(
+                        me.BorderSide(
+                            width=1,
+                            color="on-primary-fixed",
+                            style="solid",
+                        )
+                    ),
+                ),
+            ):
+                me.text("Upload Image")
 
 
 def example_box_component(text: str):
@@ -517,3 +561,117 @@ def fundus_collection_component(collection: FundusCollection):
         )
 
         me.markdown(md)
+
+
+@me.stateclass
+class UploadState:
+    file: me.UploadedFile
+    search_results: List[ChatMessage] = dataclasses.field(
+        default_factory=list
+    )  # Store search results as a list of ChatMessages
+
+
+def _ensure_correct_format(file: me.UploadedFile) -> bytes:
+    """Ensures the image is in the correct format (RGB)."""
+    try:
+        image = Image.open(io.BytesIO(file.getvalue()))
+        if image.mode != "RGB":
+            print(f"Converting image from {image.mode} to RGB")
+            image = image.convert("RGB")
+
+        with io.BytesIO() as output:
+            image.save(output, format="PNG")  # Save as PNG
+            return output.getvalue()
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        raise ValueError(f"Image format issue: {e}")
+
+
+def perform_similarity_search(image_bytes: bytes):
+    """
+    Perform the similarity search directly within the component instead of calling the external API.
+
+    Args:
+        image_bytes (bytes): The image data in bytes format.
+
+    Returns:
+        list: A list of search results (FundusRecordInternal) matching the image similarity.
+    """
+    try:
+        # Perform image embedding calculation
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        # Here, perform the same ML embedding calculation
+        embedding = ml_client.compute_image_embedding(image_base64, return_tensor="np")
+
+        if (
+            embedding is None
+            or not isinstance(embedding, (np.ndarray, list))
+            or len(embedding) == 0
+        ):
+            raise ValueError("Failed to retrieve embedding from ML server")
+
+        query_embedding = np.array(embedding).flatten().tolist()
+        # Search in all collections `search_in_collections=None`
+        search_query = EmbeddingQuery(
+            query_embedding=query_embedding, search_in_collections=None
+        )
+
+        search_results = __VDB__._fundus_record_image_similarity_search(
+            query_embedding=search_query.query_embedding,
+            search_in_collections=search_query.search_in_collections,
+            top_k=search_query.top_k,
+        )
+        return search_results
+
+    except Exception as e:
+        print(f"Error performing similarity search: {e}")
+        return []
+
+
+def handle_upload(event: me.UploadEvent):
+    """Handles image upload, performs similarity search, and adds results to chat memory."""
+    state = me.state(UploadState)
+    app_state = me.state(AppState)
+    state.file = event.file
+
+    try:
+        corrected_image_bytes = _ensure_correct_format(state.file)
+        print(f"Image prepared: {state.file.name}, Format: PNG")
+
+        # Perform the similarity search directly
+        search_results = perform_similarity_search(corrected_image_bytes)
+
+        state.search_results = []  # Reset the search results before adding new ones
+
+        # Create ChatMessages for each search result and add them to the chat memory
+        for result in search_results:
+            murag_id = result.murag_id
+            if murag_id:
+                gemini = GeminiFundusAssistant(app_state.selected_model)
+                content = f"<FundusRecord murag_id='{murag_id}' />\n"
+                gemini.append_chat_message_to_history(role="model", content=content)
+
+        me.navigate("/conversation")
+
+    except Exception as e:
+        print(f"Image processing failed: {e}")
+        state.search_results = [
+            ChatMessage(
+                role="model", content="An error occurred while processing the image."
+            )
+        ]
+
+
+def upload_image_component():
+    """UI component for uploading an image and displaying results."""
+    with me.box(style=me.Style(padding=me.Padding.all(15))):
+        me.text("Upload an Image", style=me.Style(font_size="18px", font_weight="bold"))
+
+        me.uploader(
+            label="Select an Image",
+            accepted_file_types=["image/jpeg", "image/png", "image/tiff"],
+            on_upload=handle_upload,
+            type="flat",
+            color="primary",
+        )
