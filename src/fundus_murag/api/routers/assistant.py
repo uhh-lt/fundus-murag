@@ -19,7 +19,7 @@ assistant_factory = AssistantFactory()
 @router.post("/send_message", response_model=AssistantResponse)
 async def send_message(request: MessageRequest):
     try:
-        assistant, session_id = assistant_factory.get_or_create_assistant(
+        assistant, session = assistant_factory.get_or_create_assistant(
             model_name=request.model_name,
             session_id=request.session_id,
         )
@@ -30,8 +30,7 @@ async def send_message(request: MessageRequest):
 
         return AssistantResponse(
             message=response_text,
-            session_id=session_id,
-            model_name=request.model_name,
+            session=session,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
