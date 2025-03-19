@@ -26,7 +26,6 @@ from openai.types.chat.chat_completion_user_message_param import (
     ChatCompletionUserMessageParam,
 )
 
-from fundus_murag.assistant.prompts.prompt import ASSISTANT_SYSTEM_INSTRUCTION
 from fundus_murag.assistant.tools.function_call_handler import FunctionCallHandler
 from fundus_murag.assistant.tools.tools import FundusTool
 from fundus_murag.config import load_config
@@ -55,19 +54,16 @@ class ChatAssistant:
 
         Args:
             model_name (str, optional): The name of the OpenAI model to use. If not provided, the default model specified in the config file will be used.
-            system_instruction (str, optional): The system instruction to provide to the model. If not provided, the default system instruction will be used.
-            available_tools (list[FundusTool], optional): The list of available tools that the assistant can use. If not provided, all tools will be available.
+            system_instruction (str, optional): The system instruction to provide to the model. If not provided, no system instruction will be used.
+            available_tools (list[FundusTool], optional): The list of available tools that the assistant can use. If not provided, no tools will be available.
         """
         self._conf = load_config()
         self.model_name = model_name or self._conf.assistant.default_model
         if not self.is_model_available(self.model_name):
             raise ValueError(f"Model '{self.model_name}' is not available.")
-        # currently the default System Instruction is the ASSISTANT_SYSTEM_INSTRUCTION if not provided
-        system_instruction = system_instruction or ASSISTANT_SYSTEM_INSTRUCTION
         self._system_instruction = system_instruction
-        # current default is all tools if None
         if available_tools is None:
-            self._available_tools = [t for t in FundusTool]
+            self._available_tools = []
         self._function_call_handler = FunctionCallHandler(
             available_tools=self._available_tools,
             use_gemini_format=self.model_name.startswith("google/"),
