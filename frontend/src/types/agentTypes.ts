@@ -1,17 +1,18 @@
-export interface AssistantModel {
+export interface AgentModel {
     name: string;
     display_name: string;
   }
 
-  export interface AssistantSession {
+  export interface AgentSession {
     session_id: string;
-    model_name: string;
     created: number;
+    updated: number;
+    expires: number;
   }
 
-  export interface AssistantResponse {
+  export interface AgentResponse {
     message: string;
-    session: AssistantSession;
+    session: AgentSession;
   }
 
   export interface UserMessageRequest {

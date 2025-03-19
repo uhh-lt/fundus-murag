@@ -6,18 +6,14 @@ import Layout from "../components/Layout";
 import ModelPicker from "../components/ModelPicker";
 import ChatInput from "../components/chat/ChatInput";
 import { useChat } from "../context/ChatContext";
-import { useAssistantService } from "../hooks/useAssistantService";
-import { AssistantModel } from "../types/assistantTypes";
+import { useAgentService } from "../hooks/useAgentService";
+import { AgentModel } from "../types/agentTypes";
 import { ChatMessageData } from "../types/chatTypes";
 
 const StartPage: React.FC = () => {
     const { selectedModel, setSelectedModel, setMessages } = useChat();
-    const {
-        loading: assistantServiceLoading,
-        error: assistantServiceError,
-        getAvailableModels,
-    } = useAssistantService();
-    const [availableModels, setAvailableModels] = useState<AssistantModel[]>([]);
+    const { loading: agentServiceLoading, error: agentServiceError, getAvailableModels } = useAgentService();
+    const [availableModels, setAvailableModels] = useState<AgentModel[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,7 +27,7 @@ const StartPage: React.FC = () => {
         fetchModels();
     }, [getAvailableModels, setSelectedModel]);
 
-    const handleModelChange = (model: AssistantModel) => {
+    const handleModelChange = (model: AgentModel) => {
         setSelectedModel(model);
     };
 
@@ -81,19 +77,19 @@ const StartPage: React.FC = () => {
                     </Typography>
                 </Box>
 
-                {assistantServiceLoading && (
+                {agentServiceLoading && (
                     <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
                         <CircularProgress />
                     </Box>
                 )}
 
-                {assistantServiceError && (
+                {agentServiceError && (
                     <Box sx={{ p: 2, width: "100%" }}>
                         <Alert severity="error">Error Loading Models!</Alert>
                     </Box>
                 )}
 
-                {availableModels.length === 0 && !assistantServiceLoading && !assistantServiceError && (
+                {availableModels.length === 0 && !agentServiceLoading && !agentServiceError && (
                     <Alert severity="warning">No models available!</Alert>
                 )}
 
@@ -103,8 +99,8 @@ const StartPage: React.FC = () => {
                             selectedModel={selectedModel}
                             models={availableModels}
                             onModelChange={handleModelChange}
-                            isLoading={assistantServiceLoading}
-                            isError={!!assistantServiceError}
+                            isLoading={agentServiceLoading}
+                            isError={!!agentServiceError}
                         />
 
                         <Divider sx={{ marginY: 2 }} />
@@ -115,7 +111,7 @@ const StartPage: React.FC = () => {
                             <ChatInput
                                 onSendMessage={handleSendMessage}
                                 onReset={() => {}}
-                                disabled={!selectedModel || assistantServiceLoading || !!assistantServiceError}
+                                disabled={!selectedModel || agentServiceLoading || !!agentServiceError}
                             />
                         </Box>
                     </>

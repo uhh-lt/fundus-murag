@@ -1,16 +1,16 @@
 import { useCallback, useState } from 'react';
-import assistantService from '../services/assistantService';
-import { AssistantModel, AssistantResponse, AssistantSession, UserMessageRequest } from '../types/assistantTypes';
+import agentService from '../services/agentService';
+import { AgentModel, AgentResponse, AgentSession, UserMessageRequest } from '../types/agentTypes';
 
-export function useAssistantService() {
+export function useAgentService() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
 
-    const getAvailableModels = useCallback(async (): Promise<AssistantModel[]> => {
+    const getAvailableModels = useCallback(async (): Promise<AgentModel[]> => {
         setLoading(true);
         setError(null);
         try {
-            const models = await assistantService.getAvailableModels();
+            const models = await agentService.getAvailableModels();
             return models;
         } catch (err) {
             setError(err as Error);
@@ -20,11 +20,11 @@ export function useAssistantService() {
         }
     }, []);
 
-    const sendMessage = useCallback(async (msg: UserMessageRequest): Promise<AssistantResponse | null> => {
+    const sendMessage = useCallback(async (msg: UserMessageRequest): Promise<AgentResponse | null> => {
         setLoading(true);
         setError(null);
         try {
-            const response = await assistantService.sendMessage(msg);
+            const response = await agentService.sendMessage(msg);
             return response;
         } catch (err) {
             setError(err as Error);
@@ -34,11 +34,11 @@ export function useAssistantService() {
         }
     }, []);
 
-    const listSessions = useCallback(async (): Promise<AssistantSession[] | null> => {
+    const listSessions = useCallback(async (): Promise<AgentSession[] | null> => {
         setLoading(true);
         setError(null);
         try {
-            const sessions = await assistantService.listSessions();
+            const sessions = await agentService.listSessions();
             return sessions;
         } catch (err) {
             setError(err as Error);

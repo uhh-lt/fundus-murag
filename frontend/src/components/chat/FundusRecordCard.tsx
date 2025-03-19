@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import React, { useEffect, useState } from "react";
-import { useAssistantService } from "../../hooks/useLookupService";
+import { useAgentService } from "../../hooks/useLookupService";
 import { FundusRecord, FundusRecordImage } from "../../types/fundusTypes";
 
 interface FundusRecordCardProps {
@@ -29,7 +29,7 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [imageLoaded, setImageLoaded] = useState(false);
-    const { getFundusRecord, getFundusRecordImage } = useAssistantService();
+    const { getFundusRecord, getFundusRecordImage } = useAgentService();
 
     useEffect(() => {
         const fetchRecordData = async () => {

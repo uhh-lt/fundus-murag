@@ -1,6 +1,6 @@
 import { Box, Button, CircularProgress, Divider, Link, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useAssistantService } from "../../hooks/useLookupService";
+import { useAgentService } from "../../hooks/useLookupService";
 import { FundusCollection } from "../../types/fundusTypes";
 
 // Component to render a FundusCollection
@@ -12,7 +12,7 @@ const FundusCollectionCard: React.FC<FundusCollectionCardProps> = ({ muragId }) 
     const [collection, setCollection] = useState<FundusCollection | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(true);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
-    const { getFundusCollection } = useAssistantService();
+    const { getFundusCollection } = useAgentService();
 
     useEffect(() => {
         const fetchCollectionData = async () => {
