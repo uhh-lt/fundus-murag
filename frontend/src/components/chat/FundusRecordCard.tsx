@@ -204,6 +204,9 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                         <Typography variant="body2" color="text.secondary">
                             {record.collection_name}
                         </Typography>
+                        <Typography variant="subtitle2" color="text.secondary">
+                            ID: {record.murag_id}
+                        </Typography>
                     </CardContent>
                 </CardActionArea>
                 <CardActions sx={{ mt: "auto" }}>
