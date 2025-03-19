@@ -85,9 +85,7 @@ class VectorDB(metaclass=SingletonMeta):
     def close(self):
         self._get_client().close()
 
-    def _connect_to_weaviate(
-        self, raise_on_error: bool = False
-    ) -> weaviate.WeaviateClient:
+    def _connect_to_weaviate(self, raise_on_error: bool = False) -> weaviate.WeaviateClient:
         client = weaviate.connect_to_custom(
             http_host=self._config.weaviate.host,
             http_port=self._config.weaviate.http_port,
@@ -101,9 +99,7 @@ class VectorDB(metaclass=SingletonMeta):
             logger.warning(msg)
             if raise_on_error:
                 raise ConnectionError(msg)
-        logger.info(
-            f"Connected to Weaviate {self._config.weaviate.host}:{self._config.weaviate.http_port}"
-        )
+        logger.info(f"Connected to Weaviate {self._config.weaviate.host}:{self._config.weaviate.http_port}")
         return client
 
     def is_initialized(self) -> bool:
@@ -133,9 +129,7 @@ class VectorDB(metaclass=SingletonMeta):
     def _get_fundus_collection_collection(self) -> weaviate.collections.Collection:
         return self._get_client().collections.get(FUNDUS_COLLECTION_SCHEMA_NAME)
 
-    def _import_fundus_collections(
-        self, collections_df: pd.DataFrame, collection_embeddings_df: pd.DataFrame
-    ) -> None:
+    def _import_fundus_collections(self, collections_df: pd.DataFrame, collection_embeddings_df: pd.DataFrame) -> None:
         if self._get_client().collections.exists(FUNDUS_COLLECTION_SCHEMA_NAME):
             return
 
@@ -173,10 +167,7 @@ class VectorDB(metaclass=SingletonMeta):
             elif len(collection_embeddings) == 1:
                 vector = collection_embeddings.iloc[0]["embedding"]
             else:
-                vector = {
-                    emb["embedding_name"]: emb["embedding"]
-                    for _, emb in collection_embeddings.iterrows()
-                }
+                vector = {emb["embedding_name"]: emb["embedding"] for _, emb in collection_embeddings.iterrows()}
 
             collection.data.insert(
                 properties=props,
@@ -198,9 +189,7 @@ class VectorDB(metaclass=SingletonMeta):
         logger.info("Importing FUNDus! records...")
 
         collection = self._create_fundus_record_schema()
-        with collection.batch.fixed_size(
-            batch_size=100, concurrent_requests=16
-        ) as batch:
+        with collection.batch.fixed_size(batch_size=100, concurrent_requests=16) as batch:
             for _, row in tqdm(
                 records_df.iterrows(),
                 total=len(records_df),
@@ -210,9 +199,7 @@ class VectorDB(metaclass=SingletonMeta):
                 try:
                     base64_image = read_image_bytes(row["image_path"])
                 except Exception:
-                    logger.warning(
-                        f"Could not read image at {row['image_path']}. Skipping..."
-                    )
+                    logger.warning(f"Could not read image at {row['image_path']}. Skipping...")
                     continue
 
                 details = []
@@ -237,27 +224,20 @@ class VectorDB(metaclass=SingletonMeta):
                     "details": details,
                 }
 
-                record_embeddings = record_embeddings_df[
-                    record_embeddings_df["murag_id"] == row["murag_id"]
-                ]
+                record_embeddings = record_embeddings_df[record_embeddings_df["murag_id"] == row["murag_id"]]
                 if len(record_embeddings) == 0:
                     vector = None
                 elif len(record_embeddings) == 1:
                     vector = record_embeddings.iloc[0]["embedding"]
                 else:
-                    vector = {
-                        emb["embedding_name"]: emb["embedding"]
-                        for _, emb in record_embeddings.iterrows()
-                    }
+                    vector = {emb["embedding_name"]: emb["embedding"] for _, emb in record_embeddings.iterrows()}
 
                 batch.add_object(
                     uuid=row["murag_id"],
                     properties=props,
                     vector=vector,
                     references={
-                        "parent_collection": collections_df[
-                            collections_df["collection_name"] == row["collection_name"]
-                        ]
+                        "parent_collection": collections_df[collections_df["collection_name"] == row["collection_name"]]
                         .iloc[0]
                         .murag_id
                     },
@@ -284,9 +264,7 @@ class VectorDB(metaclass=SingletonMeta):
             )
 
             self._import_fundus_collections(collections_df, collection_embeddings_df)
-            self._import_fundus_records(
-                records_df, collections_df, record_embeddings_df
-            )
+            self._import_fundus_records(records_df, collections_df, record_embeddings_df)
             logger.info("FUNDus! data import complete.")
         else:
             logger.info("FUNDus! data already imported.")
@@ -296,12 +274,8 @@ class VectorDB(metaclass=SingletonMeta):
         client = self._get_client()
         client.collections.delete_all()
 
-    def _resolve_detail_field_names(
-        self, details: list[dict[str, str]], collection_name: str
-    ) -> dict[str, str]:
-        collection = self._collections_df[
-            self._collections_df.collection_name == collection_name
-        ].iloc[0]
+    def _resolve_detail_field_names(self, details: list[dict[str, str]], collection_name: str) -> dict[str, str]:
+        collection = self._collections_df[self._collections_df.collection_name == collection_name].iloc[0]
         fields = {f["name"]: f["label_en"] for f in collection.fields}
         resolved = {}
         for detail in details:
@@ -317,9 +291,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         return resolved
 
-    def _create_fundus_collection_from_query_results(
-        self, res: Any
-    ) -> list[FundusCollection]:
+    def _create_fundus_collection_from_query_results(self, res: Any) -> list[FundusCollection]:
         collections = []
         for res_obj in res.objects:
             item_probs = res_obj.properties
@@ -338,9 +310,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         return collections
 
-    def _create_fundus_record_from_query_results(
-        self, res: Any
-    ) -> list[FundusRecord | FundusRecordInternal]:
+    def _create_fundus_record_from_query_results(self, res: Any) -> list[FundusRecord | FundusRecordInternal]:
         records = []
         for res_obj in res.objects:
             item_probs = res_obj.properties
@@ -349,9 +319,7 @@ class VectorDB(metaclass=SingletonMeta):
             base64_image = None
             embeddings = dict()
             collection_name = item_probs["collection_name"]
-            details = self._resolve_detail_field_names(
-                item_probs["details"], collection_name
-            )
+            details = self._resolve_detail_field_names(item_probs["details"], collection_name)
             record = FundusRecord(
                 murag_id=str(item_probs["murag_id"]),
                 title=item_probs["title"],
@@ -365,10 +333,7 @@ class VectorDB(metaclass=SingletonMeta):
             if "image" in item_probs:
                 base64_image = item_probs["image"]
 
-            if (
-                res.objects[0].references is not None
-                and "parent_collection" in res.objects[0].references
-            ):
+            if res.objects[0].references is not None and "parent_collection" in res.objects[0].references:
                 collection = self._create_fundus_collection_from_query_results(
                     res.objects[0].references["parent_collection"]
                 )[0]
@@ -498,11 +463,7 @@ class VectorDB(metaclass=SingletonMeta):
             collection_titles,
             collection_titles_de,
         ):
-            if (
-                collection_name in name
-                or collection_name in title
-                or collection_name in title_de
-            ):
+            if collection_name in name or collection_name in title or collection_name in title_de:
                 matches.append((name, title, title_de))
 
         if len(matches) == 0:
@@ -536,9 +497,7 @@ class VectorDB(metaclass=SingletonMeta):
             limit=1,
         )
         if len(res.objects) == 0:
-            raise KeyError(
-                f"FundusCollection with 'collection_name'={collection_name} not found!"
-            )
+            raise KeyError(f"FundusCollection with 'collection_name'={collection_name} not found!")
 
         results = self._create_fundus_collection_from_query_results(res)
         return results[0]
@@ -557,18 +516,11 @@ class VectorDB(metaclass=SingletonMeta):
             `FundusCollection`: A random `FundusCollection` object.
         """
         if n > len(self._collections_df):
-            logger.warning(
-                f"Requested {n} random collections, but only {len(self._collections_df)} available."
-            )
+            logger.warning(f"Requested {n} random collections, but only {len(self._collections_df)} available.")
             n = len(self._collections_df)
 
-        collection_names = self._collections_df.sample(int(n))[
-            "collection_name"
-        ].values[0]
-        results = [
-            self.get_fundus_collection_by_name(collection_name=cn)
-            for cn in collection_names
-        ]
+        collection_names = self._collections_df.sample(int(n))["collection_name"].values[0]
+        results = [self.get_fundus_collection_by_name(collection_name=cn) for cn in collection_names]
         return results
 
     def get_random_fundus_records(
@@ -588,26 +540,19 @@ class VectorDB(metaclass=SingletonMeta):
         """
         if collection_name is not None:
             cn = self._resolve_collection_name(collection_name)
-            records_in_collection = self._records_df[
-                self._records_df["collection_name"] == cn
-            ]
+            records_in_collection = self._records_df[self._records_df["collection_name"] == cn]
             if len(records_in_collection) == 0:
                 raise KeyError(f"Collection with name '{collection_name}' not found!")
         else:
             records_in_collection = self._records_df
 
         if n > len(records_in_collection):
-            logger.warning(
-                f"Requested {n} random records, but only {len(records_in_collection)} available."
-            )
+            logger.warning(f"Requested {n} random records, but only {len(records_in_collection)} available.")
             n = len(records_in_collection)
 
         murag_ids = list(records_in_collection.sample(n=int(n))["murag_id"].values)
 
-        results = [
-            self.get_fundus_record_by_murag_id(murag_id=murag_id)
-            for murag_id in murag_ids
-        ]
+        results = [self.get_fundus_record_by_murag_id(murag_id=murag_id) for murag_id in murag_ids]
         return results
 
     def get_fundus_record_by_murag_id(
@@ -736,14 +681,8 @@ class VectorDB(metaclass=SingletonMeta):
         Returns:
             list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
         """
-        query = (
-            self._query_rewriter.rewrite_user_query_for_cross_modal_text_image_search(
-                query
-            )
-        )
-        text_embedding = self._fundus_ml_client.compute_text_embedding(
-            query, return_tensor="np"
-        ).tolist()  # type: ignore
+        query = self._query_rewriter.rewrite_user_query_for_cross_modal_text_to_image_search(query)
+        text_embedding = self._fundus_ml_client.compute_text_embedding(query, return_tensor="np").tolist()  # type: ignore
         results = self._fundus_record_image_similarity_search(
             text_embedding,
             search_in_collections=search_in_collections,
@@ -776,9 +715,7 @@ class VectorDB(metaclass=SingletonMeta):
         #         query
         #     )
         # )
-        text_embedding = self._fundus_ml_client.compute_text_embedding(
-            query, return_tensor="np"
-        ).tolist()  # type: ignore
+        text_embedding = self._fundus_ml_client.compute_text_embedding(query, return_tensor="np").tolist()  # type: ignore
         results = self._fundus_record_title_similarity_search(
             text_embedding,
             search_in_collections=search_in_collections,
@@ -868,9 +805,7 @@ class VectorDB(metaclass=SingletonMeta):
             filters = reduce(
                 operator.or_,
                 [
-                    Filter.by_property("collection_name").equal(
-                        self._resolve_collection_name(collection_name)
-                    )
+                    Filter.by_property("collection_name").equal(self._resolve_collection_name(collection_name))
                     for collection_name in search_in_collections
                 ],
             )
@@ -878,9 +813,9 @@ class VectorDB(metaclass=SingletonMeta):
         collection = self._get_client().collections.get("FundusRecord")
 
         # Set up query parameters based on whether we need internal record data
-        return_props = list(
-            filter(lambda c: c != "details", FundusRecord.model_fields.keys())
-        ) + [QueryNested(name="details", properties=["key", "value"])]
+        return_props = list(filter(lambda c: c != "details", FundusRecord.model_fields.keys())) + [
+            QueryNested(name="details", properties=["key", "value"])
+        ]
         return_references = None
         include_vector = False
 
@@ -941,18 +876,14 @@ class VectorDB(metaclass=SingletonMeta):
                 link_on="parent_collection",
             ),
             return_properties=return_props,
-            include_vector=["record_image", "record_title"]
-            if include_vector
-            else False,
+            include_vector=["record_image", "record_title"] if include_vector else False,
         )
         if len(res.objects) == 0:
             raise KeyError(f"FundusRecord with murag_id={murag_id} not found!")
 
         rec = self._create_fundus_record_from_query_results(res)
         if not isinstance(rec[0], FundusRecordInternal):
-            raise ValueError(
-                f"FundusRecordInternal not found for the given {murag_id=}!"
-            )
+            raise ValueError(f"FundusRecordInternal not found for the given {murag_id=}!")
 
         return rec[0]
 
@@ -978,9 +909,7 @@ class VectorDB(metaclass=SingletonMeta):
 
         results = self._fundus_record_lexical_search(
             query,
-            search_in_collections=[collection_name]
-            if collection_name is not None
-            else None,
+            search_in_collections=[collection_name] if collection_name is not None else None,
             top_k=top_k,
             search_in_title=True,
         )
@@ -1006,18 +935,14 @@ class VectorDB(metaclass=SingletonMeta):
             list[FundusRecord]: `FundusRecord`s matching the search query.
         """
         if not search_in_title:
-            raise NotImplementedError(
-                "Currently only title search is supported. Please set `search_in_title=True`."
-            )
+            raise NotImplementedError("Currently only title search is supported. Please set `search_in_title=True`.")
 
         filters = None
         if search_in_collections is not None and len(search_in_collections) > 0:
             filters = reduce(
                 operator.or_,
                 [
-                    Filter.by_property("collection_name").equal(
-                        self._resolve_collection_name(collection_name)
-                    )
+                    Filter.by_property("collection_name").equal(self._resolve_collection_name(collection_name))
                     for collection_name in search_in_collections
                 ],
             )
@@ -1212,7 +1137,5 @@ class VectorDB(metaclass=SingletonMeta):
             int: The number of records in the collection.
         """
         collection_name = self._resolve_collection_name(collection_name)
-        results = len(
-            self._records_df[self._records_df["collection_name"] == collection_name]
-        )
+        results = len(self._records_df[self._records_df["collection_name"] == collection_name])
         return results
