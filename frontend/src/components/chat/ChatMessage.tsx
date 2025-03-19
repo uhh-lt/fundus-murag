@@ -85,7 +85,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
             <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
                 <Paper
                     elevation={4}
-                    sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "secondary.main", maxWidth: "80%", minWidth: "40%" }}
+                    sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "primary.main", maxWidth: "80%", minWidth: "40%" }}
                 >
                     <Typography variant="subtitle2">{senderName}</Typography>
                     <Divider />
@@ -123,7 +123,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
         <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
             <Paper
                 elevation={4}
-                sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "primary.main", maxWidth: "80%", minWidth: "40%" }}
+                sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "secondary.dark", maxWidth: "80%", minWidth: "40%" }}
             >
                 <Typography variant="subtitle2" align="right">
                     {senderName}
