@@ -26,19 +26,20 @@ class AssistantModel(BaseModel):
     display_name: str
 
 
-class AssistantSession(BaseModel):
-    """Response model for assistant sessions."""
+class SessionHandle(BaseModel):
+    """Response model for assistant and agent sessions."""
 
     session_id: str
-    model_name: str
     created: int
+    updated: int
+    expires: int
 
 
 class AssistantResponse(BaseModel):
     """Response model for assistant interactions."""
 
     message: str
-    session: AssistantSession
+    session: SessionHandle
 
 
 class ChatMessage(BaseModel):
