@@ -5,7 +5,7 @@ import pandas as pd
 from loguru import logger
 
 from fundus_murag.assistant.chat_assistant import ChatAssistant
-from fundus_murag.assistant.tools.tools import FundusTool
+from fundus_murag.assistant.tools.tools import Tool
 from fundus_murag.data.dtos.assistant import AssistantModel, AssistantSession
 from fundus_murag.singleton_meta import SingletonMeta
 
@@ -23,7 +23,7 @@ class AssistantFactory(metaclass=SingletonMeta):
         self,
         model_name: str | None = None,
         system_instruction: str | None = None,
-        available_tools: list[FundusTool] | None = None,
+        available_tools: list[Tool] | None = None,
         session_id: str | None = None,
     ) -> tuple[ChatAssistant, AssistantSession]:
         self.__delete_old_sessions()
@@ -85,7 +85,7 @@ class AssistantFactory(metaclass=SingletonMeta):
         self,
         model_name: str | None = None,
         system_instruction: str | None = None,
-        available_tools: list[FundusTool] | None = None,
+        available_tools: list[Tool] | None = None,
     ) -> tuple[ChatAssistant, str]:
         logger.info(f"Creating new assistant for model {model_name}")
         assistant = ChatAssistant(

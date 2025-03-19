@@ -1,7 +1,7 @@
 import json
 import re
 from functools import cache
-from typing import Iterable
+from typing import Any, Iterable
 
 import google.auth.transport.requests
 import openai
@@ -26,14 +26,14 @@ from openai.types.chat.chat_completion_user_message_param import (
     ChatCompletionUserMessageParam,
 )
 
-from fundus_murag.assistant.tools.function_call_handler import FunctionCallHandler
-from fundus_murag.assistant.tools.tools import FundusTool
+from fundus_murag.assistant.tools.function_calling_handler import FunctionCallingHandler
+from fundus_murag.assistant.tools.tools import Tool
 from fundus_murag.config import load_config
 from fundus_murag.data.dtos.assistant import AssistantModel, ChatMessage
 
 # https://platform.openai.com/docs/api-reference/chat/create
 OPENAI_GENERATION_CONFIG = {
-    "n": 1,
+    "n": 1,  # number of completions to generate
     "temperature": 1.0,
     "max_completion_tokens": 8192,
 }
@@ -45,7 +45,8 @@ class ChatAssistant:
         *,
         model_name: str | None = None,
         system_instruction: str | None = None,
-        available_tools: list[FundusTool] | None = None,
+        available_tools: list[Tool] | None = None,
+        generatin_config: dict[str, Any] = OPENAI_GENERATION_CONFIG,
     ):
         """
         The ChatAssistant class is a wrapper around the OpenAI Chat API that provides a simplified interface for
@@ -56,6 +57,7 @@ class ChatAssistant:
             model_name (str, optional): The name of the OpenAI model to use. If not provided, the default model specified in the config file will be used.
             system_instruction (str, optional): The system instruction to provide to the model. If not provided, no system instruction will be used.
             available_tools (list[FundusTool], optional): The list of available tools that the assistant can use. If not provided, no tools will be available.
+            generatin_config (dict, optional): The generation configuration to use when sending messages to the model. Defaults to the OPENAI_GENERATION_CONFIG.
         """
         self._conf = load_config()
         self.model_name = model_name or self._conf.assistant.default_model
@@ -64,10 +66,11 @@ class ChatAssistant:
         self._system_instruction = system_instruction
         if available_tools is None:
             self._available_tools = []
-        self._function_call_handler = FunctionCallHandler(
+        self._function_call_handler = FunctionCallingHandler(
             available_tools=self._available_tools,
             use_gemini_format=self.model_name.startswith("google/"),
         )
+        self._generation_config = generatin_config
         self._chat_history: list[ChatCompletionMessageParam] = []
 
     @logger.catch
@@ -228,7 +231,7 @@ class ChatAssistant:
             self._chat_history.append(ChatCompletionAssistantMessageParam(**message.model_dump()))
 
     def __create_chat_completion_from_history(self) -> ChatCompletion:
-        tools = self._function_call_handler.get_open_ai_tool_params()
+        tools = self._function_call_handler.build_open_ai_tool_params()
         messages = self._chat_history
         client = self._get_api_client()
         try:
@@ -239,14 +242,14 @@ class ChatAssistant:
                     messages=messages,
                     tools=tools,
                     tool_choice="auto",
-                    **OPENAI_GENERATION_CONFIG,
+                    **self._generation_config,
                 )
             else:
                 logger.debug("Sending OpenAI completion request without tools.")
                 response = client.chat.completions.create(
                     model=self.model_name,
                     messages=messages,
-                    **OPENAI_GENERATION_CONFIG,
+                    **self._generation_config,
                 )
             logger.debug(f"OpenAI response received: {response}")
             return response

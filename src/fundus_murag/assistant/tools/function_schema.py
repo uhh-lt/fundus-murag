@@ -1,5 +1,5 @@
 """
-Taken from https://github.com/openai/openai-agents-python/blob/cdbf6b0514f04f58a358ebd143e1d305185227cc/src/agents/function_schema.py
+Mostly taken from https://github.com/openai/openai-agents-python/blob/cdbf6b0514f04f58a358ebd143e1d305185227cc/src/agents/function_schema.py
 """
 
 from __future__ import annotations
@@ -13,8 +13,10 @@ from typing import Any, Callable, Literal, get_args, get_origin, get_type_hints
 
 from griffe import Docstring, DocstringSectionKind
 from openai import NOT_GIVEN
+from openai.types.shared_params.function_definition import FunctionDefinition
 from pydantic import BaseModel, Field, create_model
 from typing_extensions import TypeGuard
+from vertexai.generative_models import FunctionDeclaration, Tool
 
 _EMPTY_SCHEMA = {
     "additionalProperties": False,
@@ -24,7 +26,7 @@ _EMPTY_SCHEMA = {
 }
 
 
-def ensure_strict_json_schema(
+def _ensure_strict_json_schema(
     schema: dict[str, Any],
 ) -> dict[str, Any]:
     """Mutates the given JSON schema to ensure it conforms to the `strict` standard
@@ -32,17 +34,17 @@ def ensure_strict_json_schema(
     """
     if schema == {}:
         return _EMPTY_SCHEMA
-    return _ensure_strict_json_schema(schema, path=(), root=schema)
+    return __ensure_strict_json_schema(schema, path=(), root=schema)
 
 
 # Adapted from https://github.com/openai/openai-python/blob/main/src/openai/lib/_pydantic.py
-def _ensure_strict_json_schema(
+def __ensure_strict_json_schema(
     json_schema: object,
     *,
     path: tuple[str, ...],
     root: dict[str, object],
 ) -> dict[str, Any]:
-    if not is_dict(json_schema):
+    if not __is_dict(json_schema):
         raise TypeError(f"Expected {json_schema} to be a dictionary; path={path}")
     # Convert "integer" types to "number" for strict JSON schema consistency
     if "type" in json_schema:
@@ -53,16 +55,14 @@ def _ensure_strict_json_schema(
             json_schema["type"] = ["number" if x == "integer" else x for x in t]
 
     defs = json_schema.get("$defs")
-    if is_dict(defs):
+    if __is_dict(defs):
         for def_name, def_schema in defs.items():
-            _ensure_strict_json_schema(
-                def_schema, path=(*path, "$defs", def_name), root=root
-            )
+            __ensure_strict_json_schema(def_schema, path=(*path, "$defs", def_name), root=root)
 
     definitions = json_schema.get("definitions")
-    if is_dict(definitions):
+    if __is_dict(definitions):
         for definition_name, definition_schema in definitions.items():
-            _ensure_strict_json_schema(
+            __ensure_strict_json_schema(
                 definition_schema,
                 path=(*path, "definitions", definition_name),
                 root=root,
@@ -71,11 +71,7 @@ def _ensure_strict_json_schema(
     typ = json_schema.get("type")
     if typ == "object" and "additionalProperties" not in json_schema:
         json_schema["additionalProperties"] = False
-    elif (
-        typ == "object"
-        and "additionalProperties" in json_schema
-        and json_schema["additionalProperties"] is True
-    ):
+    elif typ == "object" and "additionalProperties" in json_schema and json_schema["additionalProperties"] is True:
         raise ValueError(
             "additionalProperties should not be set for object types. This could be because "
             "you're using an older version of Pydantic, or because you configured additional "
@@ -86,48 +82,36 @@ def _ensure_strict_json_schema(
     # object types
     # { 'type': 'object', 'properties': { 'a':  {...} } }
     properties = json_schema.get("properties")
-    if is_dict(properties):
+    if __is_dict(properties):
         json_schema["required"] = list(properties.keys())
         json_schema["properties"] = {
-            key: _ensure_strict_json_schema(
-                prop_schema, path=(*path, "properties", key), root=root
-            )
+            key: __ensure_strict_json_schema(prop_schema, path=(*path, "properties", key), root=root)
             for key, prop_schema in properties.items()
         }
 
     # arrays
     # { 'type': 'array', 'items': {...} }
     items = json_schema.get("items")
-    if is_dict(items):
-        json_schema["items"] = _ensure_strict_json_schema(
-            items, path=(*path, "items"), root=root
-        )
+    if __is_dict(items):
+        json_schema["items"] = __ensure_strict_json_schema(items, path=(*path, "items"), root=root)
 
     # unions
     any_of = json_schema.get("anyOf")
-    if is_list(any_of):
+    if __is_list(any_of):
         json_schema["anyOf"] = [
-            _ensure_strict_json_schema(
-                variant, path=(*path, "anyOf", str(i)), root=root
-            )
+            __ensure_strict_json_schema(variant, path=(*path, "anyOf", str(i)), root=root)
             for i, variant in enumerate(any_of)
         ]
 
     # intersections
     all_of = json_schema.get("allOf")
-    if is_list(all_of):
+    if __is_list(all_of):
         if len(all_of) == 1:
-            json_schema.update(
-                _ensure_strict_json_schema(
-                    all_of[0], path=(*path, "allOf", "0"), root=root
-                )
-            )
+            json_schema.update(__ensure_strict_json_schema(all_of[0], path=(*path, "allOf", "0"), root=root))
             json_schema.pop("allOf")
         else:
             json_schema["allOf"] = [
-                _ensure_strict_json_schema(
-                    entry, path=(*path, "allOf", str(i)), root=root
-                )
+                __ensure_strict_json_schema(entry, path=(*path, "allOf", str(i)), root=root)
                 for i, entry in enumerate(all_of)
             ]
 
@@ -143,21 +127,19 @@ def _ensure_strict_json_schema(
     # so we unravel the ref
     # `{"type": "string", "description": "my description"}`
     ref = json_schema.get("$ref")
-    if ref and has_more_than_n_keys(json_schema, 1):
+    if ref and __has_more_than_n_keys(json_schema, 1):
         assert isinstance(ref, str), f"Received non-string $ref - {ref}"
 
         resolved = resolve_ref(root=root, ref=ref)
-        if not is_dict(resolved):
-            raise ValueError(
-                f"Expected `$ref: {ref}` to resolved to a dictionary but got {resolved}"
-            )
+        if not __is_dict(resolved):
+            raise ValueError(f"Expected `$ref: {ref}` to resolved to a dictionary but got {resolved}")
 
         # properties from the json schema take priority over the ones on the `$ref`
         json_schema.update({**resolved, **json_schema})
         json_schema.pop("$ref")
         # Since the schema expanded from `$ref` might not have `additionalProperties: false` applied
         # we call `_ensure_strict_json_schema` again to fix the inlined schema and ensure it's valid
-        return _ensure_strict_json_schema(json_schema, path=path, root=root)
+        return __ensure_strict_json_schema(json_schema, path=path, root=root)
 
     return json_schema
 
@@ -170,25 +152,23 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
     resolved = root
     for key in path:
         value = resolved[key]
-        assert is_dict(value), (
-            f"encountered non-dictionary entry while resolving {ref} - {resolved}"
-        )
+        assert __is_dict(value), f"encountered non-dictionary entry while resolving {ref} - {resolved}"
         resolved = value
 
     return resolved
 
 
-def is_dict(obj: object) -> TypeGuard[dict[str, object]]:
+def __is_dict(obj: object) -> TypeGuard[dict[str, object]]:
     # just pretend that we know there are only `str` keys
     # as that check is not worth the performance cost
     return isinstance(obj, dict)
 
 
-def is_list(obj: object) -> TypeGuard[list[object]]:
+def __is_list(obj: object) -> TypeGuard[list[object]]:
     return isinstance(obj, list)
 
 
-def has_more_than_n_keys(obj: dict[str, object], n: int) -> bool:
+def __has_more_than_n_keys(obj: dict[str, object], n: int) -> bool:
     i = 0
     for _ in obj.keys():
         i += 1
@@ -198,7 +178,7 @@ def has_more_than_n_keys(obj: dict[str, object], n: int) -> bool:
 
 
 @dataclass
-class FuncSchema:
+class __FuncSchema__:
     """
     Captures the schema for a python function, in preparation for sending it to an LLM as a tool.
     """
@@ -252,7 +232,7 @@ class FuncSchema:
 
 
 @dataclass
-class FuncDocumentation:
+class __FuncDocumentation__:
     """Contains metadata about a python function, extracted from its docstring."""
 
     name: str
@@ -263,13 +243,13 @@ class FuncDocumentation:
     """The parameter descriptions of the function, derived from the docstring."""
 
 
-DocstringStyle = Literal["google", "numpy", "sphinx"]
+__DocstringStyle__ = Literal["google", "numpy", "sphinx"]
 
 
 # As of Feb 2025, the automatic style detection in griffe is an Insiders feature. This
 # code approximates it.
-def _detect_docstring_style(doc: str) -> DocstringStyle:
-    scores: dict[DocstringStyle, int] = {"sphinx": 0, "numpy": 0, "google": 0}
+def _detect_docstring_style(doc: str) -> __DocstringStyle__:
+    scores: dict[__DocstringStyle__, int] = {"sphinx": 0, "numpy": 0, "google": 0}
 
     # Sphinx style detection: look for :param, :type, :return:, and :rtype:
     sphinx_patterns = [r"^:param\s", r"^:type\s", r"^:return:", r"^:rtype:"]
@@ -299,7 +279,7 @@ def _detect_docstring_style(doc: str) -> DocstringStyle:
         return "google"
 
     # Priority order: sphinx > numpy > google in case of tie
-    styles: list[DocstringStyle] = ["sphinx", "numpy", "google"]
+    styles: list[__DocstringStyle__] = ["sphinx", "numpy", "google"]
 
     for style in styles:
         if scores[style] == max_score:
@@ -320,9 +300,9 @@ def _suppress_griffe_logging():
         logger.setLevel(previous_level)
 
 
-def generate_func_documentation(
-    func: Callable[..., Any], style: DocstringStyle | None = None
-) -> FuncDocumentation:
+def __generate_func_documentation(
+    func: Callable[..., Any], style: __DocstringStyle__ | None = None
+) -> __FuncDocumentation__:
     """
     Extracts metadata from a function docstring, in preparation for sending it to an LLM as a tool.
 
@@ -338,20 +318,14 @@ def generate_func_documentation(
     name = func.__name__
     doc = inspect.getdoc(func)
     if not doc:
-        return FuncDocumentation(name=name, description=None, param_descriptions=None)
+        return __FuncDocumentation__(name=name, description=None, param_descriptions=None)
 
     with _suppress_griffe_logging():
-        docstring = Docstring(
-            doc, lineno=1, parser=style or _detect_docstring_style(doc)
-        )
+        docstring = Docstring(doc, lineno=1, parser=style or _detect_docstring_style(doc))
         parsed = docstring.parse()
 
     description: str | None = next(
-        (
-            section.value
-            for section in parsed
-            if section.kind == DocstringSectionKind.text
-        ),
+        (section.value for section in parsed if section.kind == DocstringSectionKind.text),
         None,
     )
 
@@ -362,21 +336,21 @@ def generate_func_documentation(
         for param in section.value
     }
 
-    return FuncDocumentation(
+    return __FuncDocumentation__(
         name=func.__name__,
         description=description,
         param_descriptions=param_descriptions or None,
     )
 
 
-def function_schema(
+def __function_schema(
     func: Callable[..., Any],
-    docstring_style: DocstringStyle | None = None,
+    docstring_style: __DocstringStyle__ | None = None,
     name_override: str | None = None,
     description_override: str | None = None,
     use_docstring_info: bool = True,
     strict_json_schema: bool = True,
-) -> FuncSchema:
+) -> __FuncSchema__:
     """
     Given a python function, extracts a `FuncSchema` from it, capturing the name, description,
     parameter descriptions, and other metadata.
@@ -402,7 +376,7 @@ def function_schema(
 
     # 1. Grab docstring info
     if use_docstring_info:
-        doc_info = generate_func_documentation(func, docstring_style)
+        doc_info = __generate_func_documentation(func, docstring_style)
         param_descs = doc_info.param_descriptions or {}
     else:
         doc_info = None
@@ -516,10 +490,10 @@ def function_schema(
     # 4. Build JSON schema from that model
     json_schema = dynamic_model.model_json_schema()
     if strict_json_schema:
-        json_schema = ensure_strict_json_schema(json_schema)
+        json_schema = _ensure_strict_json_schema(json_schema)
 
     # 5. Return as a FuncSchema dataclass
-    return FuncSchema(
+    return __FuncSchema__(
         name=func_name,
         description=description_override or doc_info.description if doc_info else None,
         params_pydantic_model=dynamic_model,
@@ -527,3 +501,116 @@ def function_schema(
         signature=sig,
         takes_context=takes_context,
     )
+
+
+# The following functions are used to generate the JSON schema for a function
+
+
+def __replace_integer_types(data):
+    # helper function to replace 'integer' type with 'number' in the JSON schema
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            if key == "type" and value == "integer":
+                new_data[key] = "number"
+            else:
+                new_data[key] = __replace_integer_types(value)
+        return new_data
+    elif isinstance(data, list):
+        return [__replace_integer_types(item) for item in data]
+    else:
+        return data
+
+
+def __replace_type__with_type(data):
+    # helper function to replace 'type_' with 'type' in the JSON schema
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            if key == "type_":
+                new_data["type"] = value
+            else:
+                new_data[key] = __replace_type__with_type(value)
+        return new_data
+    elif isinstance(data, list):
+        return [__replace_type__with_type(item) for item in data]
+    else:
+        return data
+
+
+def __upper_case_types(data):
+    # helper function to uppercase all types in the JSON schema
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            if key == "type":
+                new_data[key] = value.upper()
+            else:
+                new_data[key] = __upper_case_types(value)
+        return new_data
+    elif isinstance(data, list):
+        return [__upper_case_types(item) for item in data]
+    else:
+        return data
+
+
+def __purge_titles(data):
+    # helper function to remove parameter "title"s in the JSON schema
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            if key == "title" and "type" in data.keys():
+                continue
+            else:
+                new_data[key] = __purge_titles(value)
+        return new_data
+    elif isinstance(data, list):
+        return [__purge_titles(item) for item in data]
+    else:
+        return data
+
+
+def __purge_defaults(data):
+    # helper function to remove parameter "default"s in the JSON schema
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            if key == "default" and "type" in data.keys():
+                continue
+            else:
+                new_data[key] = __purge_defaults(value)
+        return new_data
+    elif isinstance(data, list):
+        return [__purge_defaults(item) for item in data]
+    else:
+        return data
+
+
+def generate_openai_function_schema(func: Callable, use_gemini_format: bool = False) -> FunctionDefinition:
+    func_schema = __function_schema(func)
+    func_name = func_schema.name
+    func_desc = func_schema.description
+
+    if use_gemini_format:
+        # this is a stupid but necessary hack to get the schema in the format accepted by Gemini because
+        # Gemini expects OpenAPI schema but does not support AnyOf (Union) types nor default values. Also the FunctionDeclaration
+        # generation outputs a schema with 'type_' instead of 'type' which is not supported by Gemini.
+        params_schema = Tool(function_declarations=[FunctionDeclaration.from_func(func)]).to_dict()[
+            "function_declarations"
+        ][0]["parameters"]
+        params_schema = __replace_type__with_type(params_schema)
+        params_schema = __purge_titles(params_schema)
+        params_schema = __purge_defaults(params_schema)
+    else:
+        params_schema = dict(func_schema.params_json_schema)
+        params_schema = __purge_titles(params_schema)
+        params_schema = __purge_defaults(params_schema)
+
+    # https://platform.openai.com/docs/guides/function-calling?api-mode=chat&lang=python#defining-functions
+    func_def = FunctionDefinition(
+        name=func_name,
+        description=func_desc or "No description provided.",
+        parameters=params_schema,  # type: ignore
+        strict=True,
+    )
+    return func_def
