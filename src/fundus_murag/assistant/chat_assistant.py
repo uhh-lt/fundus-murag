@@ -26,7 +26,7 @@ from openai.types.chat.chat_completion_user_message_param import (
     ChatCompletionUserMessageParam,
 )
 
-from fundus_murag.assistant.prompt import ASSISTANT_SYSTEM_INSTRUCTION
+from fundus_murag.assistant.prompts.prompt import ASSISTANT_SYSTEM_INSTRUCTION
 from fundus_murag.assistant.tools.function_call_handler import FunctionCallHandler
 from fundus_murag.assistant.tools.tools import FundusTool
 from fundus_murag.config import load_config
@@ -40,7 +40,7 @@ OPENAI_GENERATION_CONFIG = {
 }
 
 
-class FundusAssistant:
+class ChatAssistant:
     def __init__(
         self,
         *,
@@ -48,6 +48,16 @@ class FundusAssistant:
         system_instruction: str | None = None,
         available_tools: list[FundusTool] | None = None,
     ):
+        """
+        The ChatAssistant class is a wrapper around the OpenAI Chat API that provides a simplified interface for
+        interacting with the OpenAI Chat API. It allows sending user messages to the model and receiving responses from
+        the model. The assistant can be configured with a specific model, system instruction, and available tools.
+
+        Args:
+            model_name (str, optional): The name of the OpenAI model to use. If not provided, the default model specified in the config file will be used.
+            system_instruction (str, optional): The system instruction to provide to the model. If not provided, the default system instruction will be used.
+            available_tools (list[FundusTool], optional): The list of available tools that the assistant can use. If not provided, all tools will be available.
+        """
         self._conf = load_config()
         self.model_name = model_name or self._conf.assistant.default_model
         if not self.is_model_available(self.model_name):
@@ -72,9 +82,7 @@ class FundusAssistant:
     ) -> str:
         logger.info(f"Sending user message to model {self.model_name}: {text_message}")
         if len(self._chat_history) == 0:
-            self._chat_history.extend(
-                self.__build_system_instruction(self._system_instruction)
-            )
+            self._chat_history.extend(self.__build_system_instruction(self._system_instruction))
         user_message = self.__build_user_messages(text_message, base64_image)
         self._chat_history.extend(user_message)
         response = self.__run_agentic_loop()
@@ -115,16 +123,7 @@ class FundusAssistant:
                 .replace(" mini", " Mini")
             )
 
-        open_ai_pattern = r"(?:gpt\-4o|o1|o3)(?:-mini)?-202[4-9]-[0-9]{2}-[0-9]{2}"
-        data = []
-        for model_obj in open_ai_models:
-            if re.match(open_ai_pattern, model_obj.id):
-                data.append(
-                    {
-                        "name": model_obj.id,
-                        "display_name": get_display_name(model_obj.id),
-                    }
-                )
+        models = []
 
         # https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/call-vertex-using-openai-library#supported_models
         gemini_models = [
@@ -133,21 +132,30 @@ class FundusAssistant:
             "google/gemini-1.5-pro",
         ]
         for model in gemini_models:
-            data.append(
+            models.append(
                 {
                     "name": model,
                     "display_name": get_display_name(model),
                 }
             )
 
-        df = pd.DataFrame(data)
+        open_ai_pattern = r"(?:gpt\-4o|o1|o3)(?:-mini)?-202[4-9]-[0-9]{2}-[0-9]{2}"
+        for model_obj in open_ai_models:
+            if re.match(open_ai_pattern, model_obj.id):
+                models.append(
+                    {
+                        "name": model_obj.id,
+                        "display_name": get_display_name(model_obj.id),
+                    }
+                )
+        df = pd.DataFrame(models)
         return df
 
     @staticmethod
     def get_default_model() -> AssistantModel:
         conf = load_config()
         default = conf.assistant.default_model
-        available = FundusAssistant.list_available_models()
+        available = ChatAssistant.list_available_models()
         model = available[available["name"] == default]
         if model.empty:
             model = available.iloc[0]
@@ -159,7 +167,7 @@ class FundusAssistant:
 
     @staticmethod
     def is_model_available(model_name: str) -> bool:
-        available_models = FundusAssistant.list_available_models()
+        available_models = ChatAssistant.list_available_models()
         return model_name in available_models["name"].values
 
     def _get_api_client(self) -> openai.OpenAI:
@@ -178,14 +186,14 @@ class FundusAssistant:
         project_id = self._conf.google.project_id
         location = self._conf.google.default_location
 
-        credentials, _ = default(
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
-        )
+        credentials, _ = default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
         credentials.refresh(google.auth.transport.requests.Request())  # type: ignore
         api_key = credentials.token  # type: ignore
 
         client = openai.OpenAI(
-            base_url=f"https://{location}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{location}/endpoints/openapi",
+            base_url=(
+                f"https://{location}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{location}/endpoints/openapi"
+            ),
             api_key=api_key,
         )
         return client
@@ -194,9 +202,7 @@ class FundusAssistant:
         self, prompt: str, base64_image: str | None = None
     ) -> list[ChatCompletionUserMessageParam]:
         # currently we only support a single image which gets appended to the prompt
-        messages: list[ChatCompletionUserMessageParam] = [
-            {"role": "user", "content": prompt}
-        ]
+        messages: list[ChatCompletionUserMessageParam] = [{"role": "user", "content": prompt}]
         if base64_image:
             content = ChatCompletionContentPartImageParam(
                 image_url={
@@ -220,14 +226,10 @@ class FundusAssistant:
             return [{"role": "system", "content": system_instruction}]
         return []
 
-    def __add_assistant_response_to_chat_history(
-        self, response: ChatCompletion
-    ) -> None:
+    def __add_assistant_response_to_chat_history(self, response: ChatCompletion) -> None:
         message = response.choices[0].message
         if message.role == "assistant":
-            self._chat_history.append(
-                ChatCompletionAssistantMessageParam(**message.model_dump())
-            )
+            self._chat_history.append(ChatCompletionAssistantMessageParam(**message.model_dump()))
 
     def __create_chat_completion_from_history(self) -> ChatCompletion:
         tools = self._function_call_handler.get_open_ai_tool_params()
@@ -235,9 +237,7 @@ class FundusAssistant:
         client = self._get_api_client()
         try:
             if len(tools) > 0:
-                logger.debug(
-                    f"Sending OpenAI completion request with tools: {self._available_tools}"
-                )
+                logger.debug(f"Sending OpenAI completion request with tools: {self._available_tools}")
                 response = client.chat.completions.create(
                     model=self.model_name,
                     messages=messages,
@@ -278,9 +278,7 @@ class FundusAssistant:
         message = self.__get_message_content(response)
         return message
 
-    def __get_message_content(
-        self, response_or_message: ChatCompletion | ChatCompletionMessageParam
-    ) -> str:
+    def __get_message_content(self, response_or_message: ChatCompletion | ChatCompletionMessageParam) -> str:
         text = ""
         if isinstance(response_or_message, ChatCompletion):
             message = response_or_message.choices[0].message
@@ -313,9 +311,7 @@ class FundusAssistant:
         except Exception:
             return False
 
-    def __execute_tool_calls(
-        self, response: ChatCompletion
-    ) -> list[ChatCompletionToolMessageParam]:
+    def __execute_tool_calls(self, response: ChatCompletion) -> list[ChatCompletionToolMessageParam]:
         tool_calls = tool_calls = response.choices[0].message.tool_calls
         if tool_calls is None:
             return []
@@ -326,21 +322,15 @@ class FundusAssistant:
                 tool_name = tc.function.name
                 tool_args_str = tc.function.arguments or "{}"
                 tool_args = json.loads(tool_args_str)
-                logger.debug(
-                    f"Executing tool '{tool_name}' with arguments:\n{tool_args}"
-                )
+                logger.debug(f"Executing tool '{tool_name}' with arguments:\n{tool_args}")
 
                 result_json_str = self._function_call_handler.execute_function(
                     name=tool_name,
                     **tool_args,
                 )
-                logger.debug(
-                    f"Function '{tool_name}' executed successfully. Result:\n{result_json_str}"
-                )
+                logger.debug(f"Function '{tool_name}' executed successfully. Result:\n{result_json_str}")
 
-                tool_message = ChatCompletionToolMessageParam(
-                    content=result_json_str, role="tool", tool_call_id=tc.id
-                )
+                tool_message = ChatCompletionToolMessageParam(content=result_json_str, role="tool", tool_call_id=tc.id)
                 tool_messages.append(tool_message)
             except Exception as e:
                 logger.error(f"Error executing tool call: {e}")
