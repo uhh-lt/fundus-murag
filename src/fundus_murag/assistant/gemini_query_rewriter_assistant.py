@@ -10,7 +10,7 @@ from vertexai.generative_models import (
     GenerativeModel,
 )
 
-from fundus_murag.assistant.prompt import (
+from fundus_murag.assistant.prompts.prompt import (
     QUERY_REWRITER_TEXT_IMAGE_SYSTEM_INSTRUCTION,
     QUERY_REWRITER_TEXT_TEXT_SYSTEM_INSTRUCTION,
 )
@@ -32,9 +32,7 @@ class GeminiQueryRewriterAssistant(metaclass=SingletonMeta):
         if model_name is None:
             model_name = MODEL_NAME
         conf = load_config()
-        creds = Credentials.from_service_account_file(
-            conf.google.application_credentials_file
-        )
+        creds = Credentials.from_service_account_file(conf.google.application_credentials_file)
 
         vertexai.init(
             credentials=creds,
@@ -42,16 +40,10 @@ class GeminiQueryRewriterAssistant(metaclass=SingletonMeta):
             location="europe-west3",
         )
         genai.configure(credentials=creds)
-        self._text_image_model: GenerativeModel = self._load_model(
-            model_name, "text-image"
-        )
-        self._text_text_model: GenerativeModel = self._load_model(
-            model_name, "text-text"
-        )
+        self._text_image_model: GenerativeModel = self._load_model(model_name, "text-image")
+        self._text_text_model: GenerativeModel = self._load_model(model_name, "text-text")
 
-    def _load_model(
-        self, model_name: str, type: Literal["text-image", "text-text"]
-    ) -> GenerativeModel:
+    def _load_model(self, model_name: str, type: Literal["text-image", "text-text"]) -> GenerativeModel:
         model_name = model_name.lower()
         if "/" in model_name:
             model_name = model_name.split("/")[-1]
@@ -65,9 +57,7 @@ class GeminiQueryRewriterAssistant(metaclass=SingletonMeta):
         )
         return model
 
-    def rewrite_user_query_for_cross_modal_text_image_search(
-        self, user_query: str
-    ) -> str:
+    def rewrite_user_query_for_cross_modal_text_to_image_search(self, user_query: str) -> str:
         """
         Rewrites a user query to enhance the results of a cross-modal text-image search.
 
@@ -86,7 +76,7 @@ class GeminiQueryRewriterAssistant(metaclass=SingletonMeta):
 
         return user_query
 
-    def rewrite_user_query_for_text_text_search(self, user_query: str) -> str:
+    def rewrite_user_query_for_text_to_text_search(self, user_query: str) -> str:
         """
         Rewrites a user query to enhance the results of a semantic textual similarity search.
 
