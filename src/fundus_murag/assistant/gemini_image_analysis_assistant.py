@@ -14,7 +14,7 @@ from vertexai.generative_models import (
 from fundus_murag.assistant.base_image_analysis_assistant import (
     BaseImageAnalysisAssistant,
 )
-from fundus_murag.assistant.prompt import (
+from fundus_murag.assistant.prompts.prompt import (
     IMAGE_ANALYSIS_IC_SYSTEM_INSTRUCTION,
     IMAGE_ANALYSIS_VQA_SYSTEM_INSTRUCTION,
 )
@@ -39,9 +39,7 @@ class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
         if model_name is None:
             model_name = MODEL_NAME
         conf = load_config()
-        creds = Credentials.from_service_account_file(
-            conf.google.application_credentials_file
-        )
+        creds = Credentials.from_service_account_file(conf.google.application_credentials_file)
 
         vertexai.init(
             credentials=creds,
@@ -50,15 +48,11 @@ class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
         )
         genai.configure(credentials=creds)
         self._vqa_model: GenerativeModel = self._load_model(model_name, "vqa")
-        self._image_captioning_model: GenerativeModel = self._load_model(
-            model_name, "ic"
-        )
+        self._image_captioning_model: GenerativeModel = self._load_model(model_name, "ic")
 
         self._vdb = VectorDB()
 
-    def _load_model(
-        self, model_name: str, type: Literal["vqa", "ic"]
-    ) -> GenerativeModel:
+    def _load_model(self, model_name: str, type: Literal["vqa", "ic"]) -> GenerativeModel:
         model_name = model_name.lower()
         if "/" in model_name:
             model_name = model_name.split("/")[-1]
@@ -142,12 +136,8 @@ class GeminiImageAnalysisAssistant(BaseImageAnalysisAssistant, metaclass=Singlet
         return Part.from_text(prompt_str)
 
     @staticmethod
-    def _generate_image_captioning_prompt(
-        record: FundusRecordInternal, detailed: bool = False
-    ) -> Part:
-        prompt_str = BaseImageAnalysisAssistant.generate_image_captioning_prompt(
-            record, detailed
-        )
+    def _generate_image_captioning_prompt(record: FundusRecordInternal, detailed: bool = False) -> Part:
+        prompt_str = BaseImageAnalysisAssistant.generate_image_captioning_prompt(record, detailed)
         return Part.from_text(prompt_str)
 
     @staticmethod
