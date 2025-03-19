@@ -5,13 +5,13 @@ import Layout from "../components/Layout";
 import ChatInput from "../components/chat/ChatInput";
 import ChatMessage from "../components/chat/ChatMessage";
 import { useChat } from "../context/ChatContext";
-import { useAssistantService } from "../hooks/useAssistantService";
-import { UserMessageRequest } from "../types/assistantTypes";
+import { useAgentService } from "../hooks/useAgentService";
+import { UserMessageRequest } from "../types/agentTypes";
 import { ChatMessageData } from "../types/chatTypes";
 
 const ChatPage: React.FC = () => {
     const { messages, setMessages, sessionId, setSessionId, selectedModel } = useChat();
-    const { loading: assistantServiceLoading, error: assistantServiceError, sendMessage } = useAssistantService();
+    const { loading: agentServiceLoading, error: agentServiceError, sendMessage } = useAgentService();
 
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -44,12 +44,12 @@ const ChatPage: React.FC = () => {
                 return;
             }
             setSessionId(response.session.session_id);
-            const assistantMessage: ChatMessageData = {
+            const agentMessage: ChatMessageData = {
                 message: response.message,
                 isUser: false,
                 base64_images: null,
             };
-            setMessages((prev) => [...prev, assistantMessage]);
+            setMessages((prev) => [...prev, agentMessage]);
         });
     }, []);
 
@@ -72,12 +72,12 @@ const ChatPage: React.FC = () => {
             if (!response) {
                 return;
             }
-            const assistantMessage: ChatMessageData = {
+            const agentMessage: ChatMessageData = {
                 message: response.message,
                 isUser: false,
                 base64_images: null,
             };
-            setMessages((prev) => [...prev, assistantMessage]);
+            setMessages((prev) => [...prev, agentMessage]);
         });
     };
 
@@ -98,8 +98,8 @@ const ChatPage: React.FC = () => {
                     height: "85vh",
                 }}
             >
-                {assistantServiceError && <Alert severity="error">Error Communicating with Assistant!</Alert>}
-                {!assistantServiceError && (
+                {agentServiceError && <Alert severity="error">Error Communicating with Agent!</Alert>}
+                {!agentServiceError && (
                     <Paper
                         elevation={16}
                         sx={{
@@ -111,7 +111,7 @@ const ChatPage: React.FC = () => {
                         }}
                     >
                         <Typography variant="h6">
-                            🔮 Chat with <strong>FUNDus! Assistant</strong> using <em>{selectedModel.display_name}</em>
+                            🔮 Chat with <strong>FUNDus! Agent</strong> using <em>{selectedModel.display_name}</em>
                         </Typography>
 
                         <Divider sx={{ my: 1 }} />
@@ -131,7 +131,7 @@ const ChatPage: React.FC = () => {
                                     senderName={msg.isUser ? "You" : selectedModel.display_name}
                                 />
                             ))}
-                            {assistantServiceLoading && (
+                            {agentServiceLoading && (
                                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: "italic" }}>
                                     {selectedModel.display_name} is typing...
                                 </Typography>
@@ -144,7 +144,7 @@ const ChatPage: React.FC = () => {
                         <ChatInput
                             onSendMessage={handleSendMessage}
                             onReset={handleReset}
-                            disabled={assistantServiceLoading}
+                            disabled={agentServiceLoading}
                         />
                     </Paper>
                 )}

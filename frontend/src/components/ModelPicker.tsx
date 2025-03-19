@@ -1,11 +1,11 @@
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import React from "react";
-import { AssistantModel } from "../types/assistantTypes";
+import { AgentModel } from "../types/agentTypes";
 
 interface ModelPickerProps {
-    selectedModel?: AssistantModel;
-    models: AssistantModel[];
-    onModelChange: (model: AssistantModel) => void;
+    selectedModel?: AgentModel;
+    models: AgentModel[];
+    onModelChange: (model: AgentModel) => void;
     isLoading: boolean;
     isError: boolean;
 }
@@ -20,11 +20,11 @@ const ModelPicker: React.FC<ModelPickerProps> = ({ selectedModel, models, onMode
 
     return (
         <FormControl fullWidth sx={{ m: 1 }}>
-            <InputLabel id="model-select-label">Select the Assistant Model</InputLabel>
+            <InputLabel id="model-select-label">Select the Agent Model</InputLabel>
             <Select
                 labelId="model-select-label"
                 id="model-select"
-                label="Select the Assistant Model"
+                label="Select the Agent Model"
                 value={selectedModel?.name || ""}
                 onChange={handleChange}
             >

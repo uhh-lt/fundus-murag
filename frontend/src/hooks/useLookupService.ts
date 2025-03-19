@@ -3,7 +3,7 @@ import lookupService from '../services/lookupService';
 import { FundusCollection, FundusRecord, FundusRecordImage } from '../types/fundusTypes';
 
 
-export function useAssistantService() {
+export function useAgentService() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
 

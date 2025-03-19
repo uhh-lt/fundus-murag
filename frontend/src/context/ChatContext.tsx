@@ -1,13 +1,13 @@
 import React, { createContext, ReactNode, useContext, useState } from "react";
 
-import { AssistantModel } from "../types/assistantTypes";
+import { AgentModel } from "../types/agentTypes";
 import { ChatMessageData } from "../types/chatTypes";
 
 interface ChatContextType {
     messages: ChatMessageData[];
     setMessages: React.Dispatch<React.SetStateAction<ChatMessageData[]>>;
-    selectedModel: AssistantModel | undefined;
-    setSelectedModel: React.Dispatch<React.SetStateAction<AssistantModel | undefined>>;
+    selectedModel: AgentModel | undefined;
+    setSelectedModel: React.Dispatch<React.SetStateAction<AgentModel | undefined>>;
     sessionId: string | undefined | null;
     setSessionId: React.Dispatch<React.SetStateAction<string | undefined | null>>;
 }
@@ -28,7 +28,7 @@ export const useChat = (): ChatContextType => {
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [messages, setMessages] = useState<ChatMessageData[]>([]);
     const [sessionId, setSessionId] = useState<string | undefined | null>(undefined);
-    const [selectedModel, setSelectedModel] = useState<AssistantModel | undefined>();
+    const [selectedModel, setSelectedModel] = useState<AgentModel | undefined>();
 
     return (
         <ChatContext.Provider
