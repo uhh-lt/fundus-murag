@@ -40,6 +40,6 @@
             "request": "attach",
             "connect": { "host": "localhost", "port": 58688},
             "justMyCode": false,
-        }
+        },
     ]
 }
