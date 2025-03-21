@@ -2,6 +2,7 @@ import { Box, Divider, Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ChatMessageData } from "../../types/chatTypes";
 import FundusCollectionCard from "./FundusCollectionCard";
 import FundusRecordCard from "./FundusRecordCard";
 
@@ -59,23 +60,22 @@ const replaceFundusCollectionTags = (content: string): string => {
 };
 
 interface ChatMessageProps {
-    content: string;
-    isUser: boolean;
+    chatMessage: ChatMessageData;
     senderName: string;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) => {
     // Only process custom tags for non-user messages
-    if (!isUser) {
-        const hasRecordTags = containsFundusRecordTag(content);
-        const hasCollectionTags = containsFundusCollectionTag(content);
+    if (!chatMessage.isUser) {
+        const hasRecordTags = containsFundusRecordTag(chatMessage.message);
+        const hasCollectionTags = containsFundusCollectionTag(chatMessage.message);
 
         // Extract IDs for both types of tags
-        const recordIds = hasRecordTags ? extractFundusRecordIds(content) : [];
-        const collectionIds = hasCollectionTags ? extractFundusCollectionIds(content) : [];
+        const recordIds = hasRecordTags ? extractFundusRecordIds(chatMessage.message) : [];
+        const collectionIds = hasCollectionTags ? extractFundusCollectionIds(chatMessage.message) : [];
 
         // Clean content by removing both types of tags
-        let cleanContent = content;
+        let cleanContent = chatMessage.message;
         if (hasRecordTags) {
             cleanContent = replaceFundusRecordTags(cleanContent);
         }
@@ -122,19 +122,35 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
 
     // For user messages, render normally
     return (
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", textAlign: "right" }}>
             <Paper
                 elevation={4}
-                sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "secondary.dark", maxWidth: "80%", minWidth: "40%" }}
+                sx={{
+                    px: 2,
+                    py: 1,
+                    my: 1,
+                    mx: 2,
+                    bgcolor: "secondary.dark",
+                    maxWidth: "80%",
+                }}
             >
-                <Typography variant="subtitle2" align="right">
-                    {senderName}
-                </Typography>
+                <Typography variant="subtitle2">{senderName}</Typography>
                 <Divider />
                 <Box mt={1}>
                     <Typography component="div" sx={{ whiteSpace: "pre-wrap" }}>
-                        <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+                        <Markdown remarkPlugins={[remarkGfm]}>{chatMessage.message}</Markdown>
                     </Typography>
+                    {chatMessage.base64_image && (
+                        <img
+                            src={chatMessage.base64_image}
+                            alt="Uploaded user image"
+                            style={{
+                                width: "50%",
+                                height: "auto",
+                                borderRadius: 8,
+                            }}
+                        />
+                    )}
                 </Box>
             </Paper>
         </Box>

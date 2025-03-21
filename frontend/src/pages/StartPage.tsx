@@ -47,17 +47,10 @@ const StartPage: React.FC = () => {
         navigate("/chat");
     };
 
-    const handleSendMessage = (content: string) => {
-        if (!content.trim() || !selectedModel) return;
+    const handleSendMessage = (message: ChatMessageData) => {
+        if (!message || !selectedModel) return;
 
-        const userMessage = {
-            message: content,
-            base64_image: null,
-            isUser: true,
-            sessionId: undefined,
-        };
-
-        setMessages([userMessage]);
+        setMessages([message]);
         navigate("/chat");
     };
 
@@ -108,10 +101,12 @@ const StartPage: React.FC = () => {
                         <ExamplePrompts onSelectExample={handleSelectExample} />
 
                         <Box sx={{ mt: "auto" }}>
+                            <Divider sx={{ my: 1 }} />
                             <ChatInput
                                 onSendMessage={handleSendMessage}
                                 onReset={() => {}}
                                 disabled={!selectedModel || loading || !!error}
+                                showAddImage={true}
                             />
                         </Box>
                     </>

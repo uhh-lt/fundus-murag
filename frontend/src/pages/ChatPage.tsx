@@ -53,18 +53,14 @@ const ChatPage: React.FC = () => {
         });
     }, []);
 
-    const handleSendMessage = (content: string) => {
-        if (!content.trim() || !selectedModel) return;
-        const userMessage: ChatMessageData = {
-            message: content,
-            base64_image: null,
-            isUser: true,
-        };
-        setMessages((prev) => [...prev, userMessage]);
+    const handleSendMessage = (message: ChatMessageData) => {
+        if (!message || !selectedModel) return;
+
+        setMessages((prev) => [...prev, message]);
 
         const msg: UserMessageRequest = {
-            message: content,
-            base64_image: null,
+            message: message.message,
+            base64_image: message.base64_image,
             model_name: selectedModel.name,
             session_id: sessionId,
         };
@@ -126,8 +122,7 @@ const ChatPage: React.FC = () => {
                             {messages.map((msg, i) => (
                                 <ChatMessage
                                     key={`msg-${i}`}
-                                    content={msg.message}
-                                    isUser={msg.isUser}
+                                    chatMessage={msg}
                                     senderName={msg.isUser ? "You" : selectedModel.display_name}
                                 />
                             ))}
