@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import agentService from '../services/agentService';
+import assistantApiService from '../services/assistantApiService';
 import { AgentModel, AgentResponse, AgentSession, UserMessageRequest } from '../types/agentTypes';
 
-export function useAgentService() {
+export function useAssistantService() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
 
@@ -10,7 +10,7 @@ export function useAgentService() {
         setLoading(true);
         setError(null);
         try {
-            const models = await agentService.getAvailableModels();
+            const models = await assistantApiService.getAvailableModels();
             return models;
         } catch (err) {
             setError(err as Error);
@@ -24,7 +24,7 @@ export function useAgentService() {
         setLoading(true);
         setError(null);
         try {
-            const response = await agentService.sendMessage(msg);
+            const response = await assistantApiService.sendMessage(msg);
             return response;
         } catch (err) {
             setError(err as Error);
@@ -38,7 +38,7 @@ export function useAgentService() {
         setLoading(true);
         setError(null);
         try {
-            const sessions = await agentService.listSessions();
+            const sessions = await assistantApiService.listSessions();
             return sessions;
         } catch (err) {
             setError(err as Error);
