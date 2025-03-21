@@ -146,6 +146,11 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                         <strong>Collection:</strong> {record.collection_name}
                     </Typography>
                     <Typography>
+                        <strong>MuRAG ID:</strong>
+                        <br />
+                        {record.murag_id}
+                    </Typography>
+                    <Typography>
                         <strong>FUNDus ID:</strong> {record.fundus_id}
                     </Typography>
                     <Typography>
@@ -202,10 +207,7 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                             {record.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {record.collection_name}
-                        </Typography>
-                        <Typography variant="subtitle2" color="text.secondary">
-                            ID: {record.murag_id}
+                            Collection: {record.collection_name}
                         </Typography>
                     </CardContent>
                 </CardActionArea>

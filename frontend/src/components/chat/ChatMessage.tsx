@@ -1,5 +1,7 @@
 import { Box, Divider, Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import FundusCollectionCard from "./FundusCollectionCard";
 import FundusRecordCard from "./FundusRecordCard";
 
@@ -93,7 +95,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
                         {/* Regular text content */}
                         {cleanContent && (
                             <Typography component="div" sx={{ whiteSpace: "pre-wrap" }}>
-                                {cleanContent}
+                                <Markdown remarkPlugins={[remarkGfm]}>{cleanContent}</Markdown>
                             </Typography>
                         )}
 
@@ -101,7 +103,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
                         {recordIds.length > 0 && (
                             <Grid container spacing={2} columns={12}>
                                 {recordIds.map((id, index) => (
-                                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={`record-${id}-${index}`}>
+                                    <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={`record-${id}-${index}`}>
                                         <FundusRecordCard muragId={id} />
                                     </Grid>
                                 ))}
@@ -131,7 +133,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ content, isUser, senderName }
                 <Divider />
                 <Box mt={1}>
                     <Typography component="div" sx={{ whiteSpace: "pre-wrap" }}>
-                        {content}
+                        <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
                     </Typography>
                 </Box>
             </Paper>

@@ -1,4 +1,15 @@
-import { Box, Button, CircularProgress, Divider, Link, Modal, Typography } from "@mui/material";
+import {
+    Alert,
+    Box,
+    Button,
+    Card,
+    CardActionArea,
+    CircularProgress,
+    Divider,
+    Link,
+    Modal,
+    Typography,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useAgentService } from "../../hooks/useLookupService";
 import { FundusCollection } from "../../types/fundusTypes";
@@ -49,21 +60,10 @@ const FundusCollectionCard: React.FC<FundusCollectionCardProps> = ({ muragId }) 
 
     if (!collection) {
         return (
-            <Box
-                sx={{
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    p: 2,
-                    my: 2,
-                    backgroundColor: "#f8f8f8",
-                    boxShadow: "rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px",
-                }}
-            >
-                <Typography variant="subtitle1" fontWeight="bold" color="error">
-                    FUNDus Collection Not Found
-                </Typography>
-                <Typography>Collection ID: {muragId}</Typography>
-            </Box>
+            <Alert severity="error">
+                FUNDus Collection Not Found
+                <Typography>ID: {muragId}</Typography>
+            </Alert>
         );
     }
 
@@ -98,7 +98,10 @@ const FundusCollectionCard: React.FC<FundusCollectionCardProps> = ({ muragId }) 
                 </Typography>
                 <Box sx={{ ml: 2 }}>
                     <Typography>
-                        <strong>Collection ID:</strong> {collection.collection_name}
+                        <strong>Collection Name:</strong> {collection.collection_name}
+                    </Typography>
+                    <Typography>
+                        <strong>MuRAG ID:</strong> {collection.murag_id}
                     </Typography>
                 </Box>
             </Box>
@@ -157,48 +160,42 @@ const FundusCollectionCard: React.FC<FundusCollectionCardProps> = ({ muragId }) 
     // Simplified card (shown in chat)
     return (
         <>
-            <Box
+            <Card
                 sx={{
-                    border: "1px solid #e0e0e0",
                     borderRadius: 2,
                     p: 2,
                     my: 2,
-                    backgroundColor: "#f8f8f8",
-                    boxShadow: "rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px",
                     cursor: "pointer",
-                    "&:hover": {
-                        backgroundColor: "#f0f0f0",
-                        transition: "background-color 0.3s",
-                    },
                 }}
                 onClick={handleOpenModal}
             >
-                <Typography variant="subtitle1" fontWeight="bold">
-                    FUNDus Collection
-                </Typography>
-                <Divider sx={{ my: 1 }} />
-
-                <Box>
-                    <Typography>
-                        <strong>Title:</strong> {collection.title}
+                <CardActionArea>
+                    <Typography variant="h6" fontWeight="bold">
+                        {collection.title}
                     </Typography>
-                    <Typography>
-                        <strong>Collection ID:</strong> {collection.collection_name}
-                    </Typography>
-                </Box>
 
-                <Typography
-                    sx={{
-                        color: "tertiary.main",
-                        fontStyle: "italic",
-                        fontSize: "small",
-                        mt: 1,
-                        textAlign: "center",
-                    }}
-                >
-                    Click to view all details
-                </Typography>
-            </Box>
+                    <Divider sx={{ my: 1 }} />
+
+                    <Typography variant="subtitle1">
+                        {(collection.description || collection.description_de)?.substring(0, 250) + "..."}
+                    </Typography>
+
+                    <Typography variant="subtitle2" color="text.secondary">
+                        MuRAG ID: {collection.murag_id}
+                    </Typography>
+
+                    <Typography
+                        sx={{
+                            fontStyle: "italic",
+                            fontSize: "small",
+                            mt: 1,
+                            textAlign: "center",
+                        }}
+                    >
+                        Click to view all details
+                    </Typography>
+                </CardActionArea>
+            </Card>
 
             {/* Modal with full details */}
             <Modal
