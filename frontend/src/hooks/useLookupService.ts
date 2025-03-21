@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import lookupService from '../services/lookupService';
+import lookupService from '../services/lookupApiService';
 import { FundusCollection, FundusRecord, FundusRecordImage } from '../types/fundusTypes';
 
 

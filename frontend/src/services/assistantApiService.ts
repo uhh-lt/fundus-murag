@@ -2,14 +2,14 @@ import { AgentModel, AgentResponse, AgentSession, UserMessageRequest } from "../
 
 export const agentService = {
   async getAvailableModels(): Promise<AgentModel[]> {
-    const response = await fetch('/api/agent/available_models');
+    const response = await fetch('/api/assistant/available_models');
     if (!response.ok) {
       throw new Error('Failed to fetch available models');
     }
     return response.json();
   },
   async sendMessage(msg: UserMessageRequest): Promise<AgentResponse> {
-    const response = await fetch('/api/agent/send_message', {
+    const response = await fetch('/api/assistant/send_message', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -22,7 +22,7 @@ export const agentService = {
     return response.json();
   },
   async listSessions(): Promise<AgentSession[]> {
-    const response = await fetch(`/api/agent/sessions`);
+    const response = await fetch(`/api/assistant/sessions`);
     if (!response.ok) {
       throw new Error('Failed to fetch sessions');
     }

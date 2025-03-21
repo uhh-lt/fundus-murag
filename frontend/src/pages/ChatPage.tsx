@@ -5,13 +5,13 @@ import Layout from "../components/Layout";
 import ChatInput from "../components/chat/ChatInput";
 import ChatMessage from "../components/chat/ChatMessage";
 import { useChat } from "../context/ChatContext";
-import { useAgentService } from "../hooks/useAgentService";
+import { useAssistantService } from "../hooks/useAssistantService";
 import { UserMessageRequest } from "../types/agentTypes";
 import { ChatMessageData } from "../types/chatTypes";
 
 const ChatPage: React.FC = () => {
     const { messages, setMessages, sessionId, setSessionId, selectedModel } = useChat();
-    const { loading: agentServiceLoading, error: agentServiceError, sendMessage } = useAgentService();
+    const { loading, error, sendMessage } = useAssistantService();
 
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -98,8 +98,8 @@ const ChatPage: React.FC = () => {
                     height: "85vh",
                 }}
             >
-                {agentServiceError && <Alert severity="error">Error Communicating with Agent!</Alert>}
-                {!agentServiceError && (
+                {error && <Alert severity="error">Error Communicating with Agent!</Alert>}
+                {!error && (
                     <Paper
                         elevation={16}
                         sx={{
@@ -131,7 +131,7 @@ const ChatPage: React.FC = () => {
                                     senderName={msg.isUser ? "You" : selectedModel.display_name}
                                 />
                             ))}
-                            {agentServiceLoading && (
+                            {loading && (
                                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: "italic" }}>
                                     {selectedModel.display_name} is typing...
                                 </Typography>
@@ -141,11 +141,7 @@ const ChatPage: React.FC = () => {
 
                         <Divider sx={{ my: 1 }} />
 
-                        <ChatInput
-                            onSendMessage={handleSendMessage}
-                            onReset={handleReset}
-                            disabled={agentServiceLoading}
-                        />
+                        <ChatInput onSendMessage={handleSendMessage} onReset={handleReset} disabled={loading} />
                     </Paper>
                 )}
             </Box>
