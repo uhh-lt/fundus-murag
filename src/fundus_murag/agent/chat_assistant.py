@@ -16,6 +16,7 @@ from openai.types.chat.chat_completion_assistant_message_param import (
 from openai.types.chat.chat_completion_content_part_image_param import (
     ChatCompletionContentPartImageParam,
 )
+from openai.types.chat.chat_completion_content_part_param import ChatCompletionContentPartParam
 from openai.types.chat.chat_completion_system_message_param import (
     ChatCompletionSystemMessageParam,
 )
@@ -26,10 +27,10 @@ from openai.types.chat.chat_completion_user_message_param import (
     ChatCompletionUserMessageParam,
 )
 
-from fundus_murag.assistant.tools.function_calling_handler import FunctionCallingHandler
-from fundus_murag.assistant.tools.tools import Tool
+from fundus_murag.agent.tools.function_calling_handler import FunctionCallingHandler
+from fundus_murag.agent.tools.tools import Tool
 from fundus_murag.config import load_config
-from fundus_murag.data.dtos.assistant import AssistantModel, ChatMessage
+from fundus_murag.data.dtos.agent import AgentModel, ChatMessage
 
 # https://platform.openai.com/docs/api-reference/chat/create
 OPENAI_GENERATION_CONFIG = {
@@ -43,6 +44,7 @@ class ChatAssistant:
     def __init__(
         self,
         *,
+        assistant_name: str | None = None,
         model_name: str | None = None,
         system_instruction: str | None = None,
         available_tools: list[Tool] | None = None,
@@ -54,6 +56,7 @@ class ChatAssistant:
         the model. The assistant can be configured with a specific model, system instruction, and available tools.
 
         Args:
+            assistant_name (str, optional): The name of the assistant just for logging purposes. Defaults to None.
             model_name (str, optional): The name of the OpenAI model to use. If not provided, the default model specified in the config file will be used.
             system_instruction (str, optional): The system instruction to provide to the model. If not provided, no system instruction will be used.
             available_tools (list[FundusTool], optional): The list of available tools that the assistant can use. If not provided, no tools will be available.
@@ -61,9 +64,11 @@ class ChatAssistant:
         """
         self._conf = load_config()
         self.model_name = model_name or self._conf.assistant.default_model
+        self.assistant_name = assistant_name or "NO NAME"
         if not self.is_model_available(self.model_name):
             raise ValueError(f"Model '{self.model_name}' is not available.")
         self._system_instruction = system_instruction
+        self._available_tools = available_tools
         if available_tools is None:
             self._available_tools = []
         self._function_call_handler = FunctionCallingHandler(
@@ -73,18 +78,17 @@ class ChatAssistant:
         self._generation_config = generatin_config
         self._chat_history: list[ChatCompletionMessageParam] = []
 
-    @logger.catch
     def send_user_message(
         self,
         text_message: str,
         base64_image: str | None = None,
     ) -> str:
-        logger.info(f"Sending user message to model {self.model_name}: {text_message}")
+        logger.info(f"[{self.assistant_name}] Sending user message to model {self.model_name}: {text_message}")
         if len(self._chat_history) == 0:
-            self._chat_history.extend(self.__build_system_instruction(self._system_instruction))
-        user_message = self.__build_user_messages(text_message, base64_image)
+            self._chat_history.extend(self._build_system_instruction(self._system_instruction))
+        user_message = self._build_user_messages(text_message, base64_image)
         self._chat_history.extend(user_message)
-        response = self.__run_agentic_loop()
+        response = self._run_agentic_loop()
         return response
 
     def get_converstation_history(self) -> list[ChatMessage]:
@@ -97,7 +101,7 @@ class ChatAssistant:
                 role = "assistant"
             else:
                 continue
-            content = self.__get_message_content(message)
+            content = self._get_message_content(message)
             if len(content) > 0:
                 messages.append(ChatMessage(role=role, content=content))
         return messages
@@ -151,7 +155,7 @@ class ChatAssistant:
         return df
 
     @staticmethod
-    def get_default_model() -> AssistantModel:
+    def get_default_model() -> AgentModel:
         conf = load_config()
         default = conf.assistant.default_model
         available = ChatAssistant.list_available_models()
@@ -159,7 +163,7 @@ class ChatAssistant:
         if model.empty:
             model = available.iloc[0]
 
-        return AssistantModel(
+        return AgentModel(
             name=model["name"].values[0],
             display_name=model["display_name"].values[0],
         )
@@ -169,18 +173,19 @@ class ChatAssistant:
         available_models = ChatAssistant.list_available_models()
         return model_name in available_models["name"].values
 
+    @cache
     def _get_api_client(self) -> openai.OpenAI:
         if self.model_name.startswith("google/"):
-            return self.__get_vertexai_openai_client()
-        return self.__get_openai_client()
+            return self._get_vertexai_openai_client()
+        return self._get_openai_client()
 
-    def __get_openai_client(self) -> openai.OpenAI:
-        logger.debug("Creating client for OpenAI Models.")
+    def _get_openai_client(self) -> openai.OpenAI:
+        logger.debug(f"[{self.assistant_name}] Creating client for OpenAI Models.")
         client = openai.OpenAI()
         return client
 
-    def __get_vertexai_openai_client(self) -> openai.OpenAI:
-        logger.debug("Creating client for VertexAI Models.")
+    def _get_vertexai_openai_client(self) -> openai.OpenAI:
+        logger.debug(f"[{self.assistant_name}] Creating client for VertexAI Models.")
         # https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/call-vertex-using-openai-library
         project_id = self._conf.google.project_id
         location = self._conf.google.default_location
@@ -197,46 +202,46 @@ class ChatAssistant:
         )
         return client
 
-    def __build_user_messages(
+    def _build_user_messages(
         self, prompt: str, base64_image: str | None = None
     ) -> list[ChatCompletionUserMessageParam]:
         # currently we only support a single image which gets appended to the prompt
-        messages: list[ChatCompletionUserMessageParam] = [{"role": "user", "content": prompt}]
+        content: list[ChatCompletionContentPartParam] = [
+            {"type": "text", "text": prompt},
+        ]
         if base64_image:
-            content = ChatCompletionContentPartImageParam(
+            img_content = ChatCompletionContentPartImageParam(
                 image_url={
                     "url": f"data:image/png;base64,{base64_image}",
                     "detail": "auto",
                 },
                 type="image_url",
             )
-            messages.append(
-                {
-                    "role": "user",
-                    "content": content,  # type: ignore
-                }
-            )
+            content.append(img_content)
+        messages = [ChatCompletionUserMessageParam(role="user", content=content)]
         return messages
 
-    def __build_system_instruction(
+    def _build_system_instruction(
         self, system_instruction: str | None = None
     ) -> list[ChatCompletionSystemMessageParam]:
         if system_instruction:
             return [{"role": "system", "content": system_instruction}]
         return []
 
-    def __add_assistant_response_to_chat_history(self, response: ChatCompletion) -> None:
+    def _add_assistant_response_to_chat_history(self, response: ChatCompletion) -> None:
         message = response.choices[0].message
         if message.role == "assistant":
             self._chat_history.append(ChatCompletionAssistantMessageParam(**message.model_dump()))
 
-    def __create_chat_completion_from_history(self) -> ChatCompletion:
+    def _create_chat_completion_from_history(self) -> ChatCompletion:
         tools = self._function_call_handler.build_open_ai_tool_params()
         messages = self._chat_history
         client = self._get_api_client()
         try:
             if len(tools) > 0:
-                logger.debug(f"Sending OpenAI completion request with tools: {self._available_tools}")
+                logger.debug(
+                    f"[{self.assistant_name}] Sending OpenAI completion request with tools: {self._available_tools}"
+                )
                 response = client.chat.completions.create(
                     model=self.model_name,
                     messages=messages,
@@ -245,39 +250,41 @@ class ChatAssistant:
                     **self._generation_config,
                 )
             else:
-                logger.debug("Sending OpenAI completion request without tools.")
+                logger.debug(f"[{self.assistant_name}] Sending OpenAI completion request without tools.")
                 response = client.chat.completions.create(
                     model=self.model_name,
                     messages=messages,
                     **self._generation_config,
                 )
-            logger.debug(f"OpenAI response received: {response}")
+            logger.debug(f"[{self.assistant_name}] OpenAI response received: {response}")
             return response
         except openai.OpenAIError as e:
-            logger.error(f"An OpenAIError occured: {e}")
+            logger.error(f"[{self.assistant_name}] An OpenAIError occured: {e}")
             raise e
         except Exception as e:
-            logger.error(f"Unexpected Error of Type {type(e)}: {e}")
+            logger.error(f"[{self.assistant_name}] Unexpected Error of Type {type(e)}: {e}")
             raise e
 
-    def __run_agentic_loop(self) -> str:
+    def _run_agentic_loop(self) -> str:
         # 1. Send the messages in the chat history to the model
-        response = self.__create_chat_completion_from_history()
-        self.__add_assistant_response_to_chat_history(response)
+        response = self._create_chat_completion_from_history()
+        self._add_assistant_response_to_chat_history(response)
 
         # 2. Run the agentic loop until no tool calls are present in the response
-        while self.__is_tool_call_response(response):
-            logger.debug("Tool Calls detected in response!")
-            tool_messages = self.__execute_tool_calls(response)
+        while self._is_tool_call_response(response):
+            logger.debug(f"[{self.assistant_name}] Tool Calls detected in response!")
+            # execute the tool calls
+            tool_messages = self._execute_tool_calls(response)
+            # add the tool messages to the chat history and send them back to the model
             self._chat_history.extend(tool_messages)
-            response = self.__create_chat_completion_from_history()
-            self.__add_assistant_response_to_chat_history(response)
+            response = self._create_chat_completion_from_history()
+            self._add_assistant_response_to_chat_history(response)
 
         # 3. Return the final response
-        message = self.__get_message_content(response)
+        message = self._get_message_content(response)
         return message
 
-    def __get_message_content(self, response_or_message: ChatCompletion | ChatCompletionMessageParam) -> str:
+    def _get_message_content(self, response_or_message: ChatCompletion | ChatCompletionMessageParam) -> str:
         text = ""
         if isinstance(response_or_message, ChatCompletion):
             message = response_or_message.choices[0].message
@@ -303,14 +310,14 @@ class ChatAssistant:
 
         return text
 
-    def __is_tool_call_response(self, response: ChatCompletion) -> bool:
+    def _is_tool_call_response(self, response: ChatCompletion) -> bool:
         try:
             tool_calls = response.choices[0].message.tool_calls
             return tool_calls is not None and len(tool_calls) > 0
         except Exception:
             return False
 
-    def __execute_tool_calls(self, response: ChatCompletion) -> list[ChatCompletionToolMessageParam]:
+    def _execute_tool_calls(self, response: ChatCompletion) -> list[ChatCompletionToolMessageParam]:
         tool_calls = tool_calls = response.choices[0].message.tool_calls
         if tool_calls is None:
             return []
@@ -321,28 +328,26 @@ class ChatAssistant:
                 tool_name = tc.function.name
                 tool_args_str = tc.function.arguments or "{}"
                 tool_args = json.loads(tool_args_str)
-                logger.debug(f"Executing tool '{tool_name}' with arguments:\n{tool_args}")
 
                 result_json_str = self._function_call_handler.execute_function(
                     name=tool_name,
                     **tool_args,
                 )
-                logger.debug(f"Function '{tool_name}' executed successfully. Result:\n{result_json_str}")
 
                 tool_message = ChatCompletionToolMessageParam(content=result_json_str, role="tool", tool_call_id=tc.id)
                 tool_messages.append(tool_message)
             except Exception as e:
-                logger.error(f"Error executing tool call: {e}")
+                logger.error(f"[{self.assistant_name}] Error executing tool call: {e}")
                 raise e
 
         return tool_messages
 
-    def __str__(self):
+    def _str__(self):
         return (
             f"FundusAssistant(\n\tmodel_name={self.model_name},\n\t",
             f"tools={self._available_tools},\n\t",
             f"system_instruction={self._system_instruction}\n)",
         )
 
-    def __repr__(self):
-        return self.__str__()
+    def _repr__(self):
+        return self._str__()

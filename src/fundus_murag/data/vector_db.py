@@ -9,8 +9,8 @@ from loguru import logger
 from tqdm import tqdm
 from weaviate.classes.query import Filter, MetadataQuery, QueryNested, QueryReference
 
-from fundus_murag.assistant.gemini_query_rewriter_assistant import (
-    GeminiQueryRewriterAssistant,
+from fundus_murag.agent.tools.query_rewriter import (
+    QueryRewriter,
 )
 from fundus_murag.config import load_config
 from fundus_murag.data.dtos.fundus import (
@@ -46,7 +46,7 @@ class VectorDB(metaclass=SingletonMeta):
         self._config = load_config()
         self._client = self._connect_to_weaviate()
         self._fundus_ml_client = FundusMLClient(self._config.fundus.ml_url)
-        self._query_rewriter = GeminiQueryRewriterAssistant()
+        self._query_rewriter = QueryRewriter()
 
         # we load the dataframes because some operations are faster and much easier to do in pandas
         self._records_df = load_fundus_records_df(

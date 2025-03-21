@@ -3,8 +3,8 @@ from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from openai.types.chat.chat_completion_tool_param import ChatCompletionToolParam
 
-from fundus_murag.assistant.tools.function_schema import generate_openai_function_schema
-from fundus_murag.assistant.tools.tools import Tool
+from fundus_murag.agent.tools.function_schema import generate_openai_function_schema
+from fundus_murag.agent.tools.tools import Tool
 
 
 class FunctionCallingHandler:

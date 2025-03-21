@@ -17,9 +17,7 @@ FUNDUS_RECORD_SCHEMA_VECTORIZER = [
     ),
     Configure.NamedVectors.none(
         name="record_image",
-        vector_index_config=Configure.VectorIndex.hnsw(
-            distance_metric=VectorDistances.COSINE
-        ),
+        vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
     ),
 ]
 FUNDUS_RECORD_SCHEMA_PROPS = [
@@ -116,15 +114,11 @@ FUNDUS_COLLECTION_SCHEMA_NAME = "FundusCollection"
 FUNDUS_COLLECTION_SCHEMA_VECTORIZER = [
     Configure.NamedVectors.none(
         name="collection_title",
-        vector_index_config=Configure.VectorIndex.hnsw(
-            distance_metric=VectorDistances.COSINE
-        ),
+        vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
     ),
     Configure.NamedVectors.none(
         name="collection_description",
-        vector_index_config=Configure.VectorIndex.hnsw(
-            distance_metric=VectorDistances.COSINE
-        ),
+        vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
     ),
 ]
 

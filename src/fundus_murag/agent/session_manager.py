@@ -4,7 +4,7 @@ from typing import Generic, TypeVar
 
 from loguru import logger
 
-from fundus_murag.data.dtos.assistant import SessionHandle
+from fundus_murag.data.dtos.session import SessionHandle
 
 T = TypeVar("T")
 
@@ -13,10 +13,14 @@ MAX_SESSIONS = 100
 
 
 class SessionManager(Generic[T]):
-    def __init__(self):
+    def __init__(self, clazz: type[T]):
         self.__session_objects: dict[str, T] = {}
         self.__sessions: dict[str, SessionHandle] = {}
         self.__old_sesssions: dict[str, SessionHandle] = {}
+        # unfortunately, Python does not have a built-in way to get the class name of a generic type at runtime
+        # so we have to pass the class name explicitly
+        self._concrete_class_name = clazz.__name__
+        logger.info(f"Initialized Session Manager for {self._concrete_class_name}")
 
     def __delete_session(self, session_id: str) -> bool:
         if session_id in self.__sessions:
@@ -24,7 +28,7 @@ class SessionManager(Generic[T]):
             self.__old_sesssions[session_id] = session.model_copy()
             del self.__sessions[session_id]
             del self.__session_objects[session_id]
-            logger.debug(f"Deleted {T.__name__} Session {session_id}")
+            logger.debug(f"Deleted {self._concrete_class_name} Session {session_id}")
             return True
         return False
 
@@ -40,7 +44,7 @@ class SessionManager(Generic[T]):
         *args,
         **kwargs,
     ) -> tuple[T, SessionHandle]:
-        logger.info(f"Creating new {T.__name__} Session")
+        logger.info(f"Creating new {self._concrete_class_name} Session")
         obj = cls(*args, **kwargs)
         session_id = str(uuid.uuid4())
         now = int(time.time())
@@ -52,13 +56,13 @@ class SessionManager(Generic[T]):
         )
         self.__session_objects[session_id] = obj
         self.__sessions[session_id] = session
-        logger.debug(f"Created new {T.__name__} Session {session_id}")
+        logger.debug(f"Created new {self._concrete_class_name} Session {session_id}")
         return obj, session
 
     def __get_session(self, session_id: str) -> SessionHandle:
         if session_id in self.__sessions:
             session = self.__sessions[session_id]
-            logger.debug(f"Reusing existing {T.__name__} for session {session.session_id}")
+            logger.debug(f"Reusing existing {self._concrete_class_name} for session {session.session_id}")
             session.updated = int(time.time())
             session.expires = session.updated + MAX_SESSION_AGE
             self.__sessions[session_id] = session
