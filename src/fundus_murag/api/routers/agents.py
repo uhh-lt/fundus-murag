@@ -1,42 +1,28 @@
 from fastapi import APIRouter, HTTPException
 
 from fundus_murag.agent.chat_assistant import ChatAssistant
-from fundus_murag.agent.chat_assistant_factory import ChatAssistantFactory
-from fundus_murag.agent.prompts.single_assistant import SINGLE_ASSISTANT_SYSTEM_INSTRUCTION
-from fundus_murag.agent.tools.tools import (
-    get_image_analysis_tool,
-    get_lex_search_tool,
-    get_lookup_tool,
-    get_sim_search_tool,
-)
+from fundus_murag.agent.fundus_multi_agent_system_factory import FundusMultiAgentSystemFactory
 from fundus_murag.data.dtos.agent import AgentModel, AgentResponse, MessageRequest, SessionHandle
 
 router = APIRouter(
-    prefix="/assistant",
-    tags=["assistant"],
+    prefix="/agents",
+    tags=["agents"],
 )
 
-assistant_factory = ChatAssistantFactory()
+fundus_agent_factory = FundusMultiAgentSystemFactory()
 
 
 @router.post("/send_message", response_model=AgentResponse)
 async def send_message(request: MessageRequest):
     try:
-        assistant, session = assistant_factory.get_or_create_assistant(
-            assistant_name="FUNdus! Assistant",
-            system_instruction=SINGLE_ASSISTANT_SYSTEM_INSTRUCTION,
-            available_tools=[
-                get_sim_search_tool(),
-                get_lex_search_tool(),
-                get_lookup_tool(),
-                get_image_analysis_tool(),
-            ],
+        agent, session = fundus_agent_factory.get_or_create_agent(
             model_name=request.model_name,
             session=request.session_id,
         )
 
-        response_text = assistant.send_user_message(
-            text_message=request.message,
+        response_text = agent.handle_user_request(
+            user_request=request.message,
+            base64_image=request.base64_image,
         )
 
         return AgentResponse(
@@ -50,7 +36,7 @@ async def send_message(request: MessageRequest):
 @router.get("/sessions", response_model=list[SessionHandle])
 async def list_sessions():
     try:
-        sessions = assistant_factory.get_all_sessions()
+        sessions = fundus_agent_factory.get_all_sessions()
         return sessions
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

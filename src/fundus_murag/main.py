@@ -36,6 +36,7 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Include routers after app is created
 from fundus_murag.api.routers import (  # noqa: E402
+    agents,
     assistant,
     general,
     lookup,
@@ -47,6 +48,7 @@ app.include_router(general.router)
 app.include_router(lookup.router)
 app.include_router(random.router)
 app.include_router(search.router)
+app.include_router(agents.router)
 app.include_router(assistant.router)
 
 
