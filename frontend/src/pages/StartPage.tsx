@@ -39,7 +39,7 @@ const StartPage: React.FC = () => {
 
         const userMessage: ChatMessageData = {
             message: example,
-            base64_images: null,
+            base64_image: null,
             isUser: true,
         };
 
@@ -52,7 +52,7 @@ const StartPage: React.FC = () => {
 
         const userMessage = {
             message: content,
-            base64_images: null,
+            base64_image: null,
             isUser: true,
             sessionId: undefined,
         };

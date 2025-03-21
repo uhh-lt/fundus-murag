@@ -35,7 +35,7 @@ const ChatPage: React.FC = () => {
 
         const msg: UserMessageRequest = {
             message: messages[0].message,
-            base64_images: messages[0].base64_images,
+            base64_image: messages[0].base64_image,
             model_name: selectedModel.name,
             session_id: null, // start a new session
         };
@@ -47,7 +47,7 @@ const ChatPage: React.FC = () => {
             const agentMessage: ChatMessageData = {
                 message: response.message,
                 isUser: false,
-                base64_images: null,
+                base64_image: null,
             };
             setMessages((prev) => [...prev, agentMessage]);
         });
@@ -57,14 +57,14 @@ const ChatPage: React.FC = () => {
         if (!content.trim() || !selectedModel) return;
         const userMessage: ChatMessageData = {
             message: content,
-            base64_images: null,
+            base64_image: null,
             isUser: true,
         };
         setMessages((prev) => [...prev, userMessage]);
 
         const msg: UserMessageRequest = {
             message: content,
-            base64_images: null,
+            base64_image: null,
             model_name: selectedModel.name,
             session_id: sessionId,
         };
@@ -75,7 +75,7 @@ const ChatPage: React.FC = () => {
             const agentMessage: ChatMessageData = {
                 message: response.message,
                 isUser: false,
-                base64_images: null,
+                base64_image: null,
             };
             setMessages((prev) => [...prev, agentMessage]);
         });
