@@ -20,11 +20,11 @@ const ModelPicker: React.FC<ModelPickerProps> = ({ selectedModel, models, onMode
 
     return (
         <FormControl fullWidth sx={{ m: 1 }}>
-            <InputLabel id="model-select-label">Select the Agent Model</InputLabel>
+            <InputLabel id="model-select-label">Select the Assistant Model</InputLabel>
             <Select
                 labelId="model-select-label"
                 id="model-select"
-                label="Select the Agent Model"
+                label="Select the Assistant Model"
                 value={selectedModel?.name || ""}
                 onChange={handleChange}
             >
