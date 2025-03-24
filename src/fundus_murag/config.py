@@ -17,6 +17,7 @@ class DataConfig(BaseSettings):
     collections_df_file: str
     record_embeddings_df_file: str
     collections_embeddings_df_file: str
+    user_image_dir: str
 
 
 class AppConfig(BaseSettings):
@@ -91,12 +92,8 @@ def load_config(config_file: str | Path | None = None) -> Config:
 
     google_application_credentials_file = Path(cfg.google.application_credentials_file)
     if not google_application_credentials_file.exists():
-        raise ValueError(
-            f"Google application credentials file not found at {google_application_credentials_file}"
-        )
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(
-        google_application_credentials_file
-    )
+        raise ValueError(f"Google application credentials file not found at {google_application_credentials_file}")
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(google_application_credentials_file)
     os.environ["OPENAI_API_KEY"] = cfg.openai.api_key
 
     # Log the configuration without sensitive information
