@@ -1,7 +1,9 @@
 import json
 from enum import Enum
 
+import mlflow
 from loguru import logger
+from mlflow.entities import SpanType
 
 from fundus_murag.agent.chat_assistant import ChatAssistant
 from fundus_murag.agent.chat_assistant_factory import ChatAssistantFactory
@@ -49,6 +51,9 @@ class ImageAnalyzer:
         )
         return assistant
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def answer_question_about_fundus_record_image(self, question: str, murag_id: str) -> str:
         """
         Generates an answer to the given question about the image of a `FundusRecord` specified by the given `murag_id`.
@@ -75,6 +80,9 @@ class ImageAnalyzer:
             logger.error(msg)
             return msg
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def generate_caption_for_fundus_record_image(self, murag_id: str, detailed: bool = False) -> str:
         """
         Generates a caption for the image of a `FundusRecord` specified by the given `murag_id`.
@@ -100,6 +108,9 @@ class ImageAnalyzer:
             logger.error(msg)
             return msg
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def extract_text_from_fundus_record_image(self, murag_id: str) -> str:
         """
         Perform OCR on the image of a `FundusRecord` specified by the given `murag_id`.
@@ -124,6 +135,9 @@ class ImageAnalyzer:
             logger.error(msg)
             return msg
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def detect_objects_in_fundus_record_image(self, murag_id: str) -> str:
         """
         Perform object detection on the image of a `FundusRecord` specified by the given `murag_id`.

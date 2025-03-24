@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+import mlflow
 from fastapi import FastAPI
 from loguru import logger
 
@@ -12,6 +13,9 @@ from fundus_murag.data.vector_db import VectorDB
 @asynccontextmanager
 async def api_lifespan(app: FastAPI):
     # Startup
+    mlflow.set_tracking_uri("http://localhost:58058")
+    mlflow.set_experiment("/fundus")
+    mlflow.openai.autolog()
     logger.info("Starting FUNDus! Data API")
     chat_assistant_factory = ChatAssistantFactory()
     fundus_agent_factory = FundusMultiAgentSystemFactory()
