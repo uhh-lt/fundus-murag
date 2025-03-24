@@ -5,11 +5,11 @@ const EXAMPLE_PROMPTS = [
     "What is FUNDus?",
     "What functionality do you provide?",
     "What collections are contained in FUNDus?",
-    "Help me creating an biology exam for my students on the topic of beatles. Assist me.",
     "Show me a random FUNDus! record!",
-    "Show me an image depicting a greek statue!",
-    "I to prepare a presentation on minerals for by geology class. Can you help me?",
-    "I want to learn about ancient history. Tell me about it.",
+    "Help me creating an biology exam for my students on the topic of beatles.",
+    "Show me a a greek statue!",
+    "I need to prepare a presentation on minerals for by geology class.",
+    "I want to learn about ancient history. Do you have any resources?",
 ];
 interface ExamplePromptsProps {
     onSelectExample: (example: string) => void;
@@ -38,7 +38,9 @@ const ExamplePrompts: React.FC<ExamplePromptsProps> = ({ onSelectExample }) => {
                                     p: 2,
                                 }}
                             >
-                                <Typography variant="body1">{example}</Typography>
+                                <Typography variant="body1" sx={{ height: "4.5rem" }}>
+                                    {example}
+                                </Typography>
                             </Paper>
                         </Tooltip>
                     </Grid>

@@ -1,5 +1,5 @@
 export interface ChatMessageData {
     message: string;
-    base64_image: string | undefined | null;
+    user_image_id: string | undefined | null;
     isUser: boolean;
 }

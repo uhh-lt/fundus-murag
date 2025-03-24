@@ -39,7 +39,7 @@ const StartPage: React.FC = () => {
 
         const userMessage: ChatMessageData = {
             message: example,
-            base64_image: null,
+            user_image_id: null,
             isUser: true,
         };
 

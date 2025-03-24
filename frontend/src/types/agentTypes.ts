@@ -17,7 +17,7 @@ export interface AgentModel {
 
   export interface UserMessageRequest {
     message: string;
-    base64_image: string | undefined | null;
+    user_image_id: string | undefined | null;
     model_name: string;
     session_id: string | undefined | null;
   }

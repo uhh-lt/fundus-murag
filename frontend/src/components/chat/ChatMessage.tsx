@@ -1,7 +1,9 @@
-import { Box, Divider, Paper, Typography } from "@mui/material";
+import { Box, CircularProgress, Divider, Paper, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
+import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useUserImageService } from "../../hooks/useUserImageService";
 import { ChatMessageData } from "../../types/chatTypes";
 import FundusCollectionCard from "./FundusCollectionCard";
 import FundusRecordCard from "./FundusRecordCard";
@@ -59,12 +61,33 @@ const replaceFundusCollectionTags = (content: string): string => {
     return content.replace(pattern, "");
 };
 
+const cleanUpWhitespaces = (content: string): string => {
+    // replace all multiple spaces (not newlines!) with a single space
+    content = content.replace(/ +/g, " ");
+    // replace more than 2 newlines with 2 newlines
+    content = content.replace(/\n{3,}/g, "\n\n");
+    // replace empty list items
+    content = content.replace(/^[-*+•] \n/gm, "");
+    return content;
+};
+
 interface ChatMessageProps {
     chatMessage: ChatMessageData;
     senderName: string;
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) => {
+    const { error, loading, getUserImage } = useUserImageService();
+    const [userImage, setUserImage] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (chatMessage.isUser && chatMessage.user_image_id) {
+            getUserImage(chatMessage.user_image_id).then((image) => {
+                setUserImage(image);
+            });
+        }
+    }, [chatMessage.isUser, chatMessage.user_image_id, getUserImage]);
+
     // Only process custom tags for non-user messages
     if (!chatMessage.isUser) {
         const hasRecordTags = containsFundusRecordTag(chatMessage.message);
@@ -74,7 +97,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
         const recordIds = hasRecordTags ? extractFundusRecordIds(chatMessage.message) : [];
         const collectionIds = hasCollectionTags ? extractFundusCollectionIds(chatMessage.message) : [];
 
-        // Clean content by removing both types of tags
+        // Clean content
         let cleanContent = chatMessage.message;
         if (hasRecordTags) {
             cleanContent = replaceFundusRecordTags(cleanContent);
@@ -82,6 +105,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
         if (hasCollectionTags) {
             cleanContent = replaceFundusCollectionTags(cleanContent);
         }
+        cleanContent = cleanUpWhitespaces(cleanContent);
 
         return (
             <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
@@ -132,6 +156,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
                     mx: 2,
                     bgcolor: "secondary.dark",
                     maxWidth: "80%",
+                    minWidth: "40%",
                 }}
             >
                 <Typography variant="subtitle2">{senderName}</Typography>
@@ -140,16 +165,20 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
                     <Typography component="div" sx={{ whiteSpace: "pre-wrap" }}>
                         <Markdown remarkPlugins={[remarkGfm]}>{chatMessage.message}</Markdown>
                     </Typography>
-                    {chatMessage.base64_image && (
+                    {userImage && (
                         <img
-                            src={chatMessage.base64_image}
-                            alt="Uploaded user image"
+                            src={userImage}
+                            alt="User image"
                             style={{
-                                width: "50%",
+                                width: "200px",
                                 height: "auto",
                                 borderRadius: 8,
                             }}
                         />
+                    )}
+                    {chatMessage.user_image_id && loading && <CircularProgress />}
+                    {chatMessage.user_image_id && error && (
+                        <Typography color="error">Error loading user image</Typography>
                     )}
                 </Box>
             </Paper>
