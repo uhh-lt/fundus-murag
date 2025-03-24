@@ -7,9 +7,9 @@ class MessageRequest(BaseModel):
     """Request model for sending a text message to a FUNDus Agent."""
 
     message: str = Field(..., description="The text message to send to the FUNDus Agent.")
-    base64_image: str | None = Field(
+    user_image_id: str | None = Field(
         None,
-        description="A Base64 encoded image that gets appended to the text message.",
+        description="The ID of the user-provided image, which was uploaded through the API before. If None, no image is provided.",
     )
     model_name: str | None = Field(
         "google/gemini-2.0-flash",

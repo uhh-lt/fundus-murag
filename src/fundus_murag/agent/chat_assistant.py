@@ -210,9 +210,12 @@ class ChatAssistant:
             {"type": "text", "text": prompt},
         ]
         if base64_image:
+            if not base64_image.startswith("data:image/"):
+                base64_image = f"data:image/png;base64,{base64_image}"
+
             img_content = ChatCompletionContentPartImageParam(
                 image_url={
-                    "url": f"data:image/png;base64,{base64_image}",
+                    "url": base64_image,
                     "detail": "auto",
                 },
                 type="image_url",

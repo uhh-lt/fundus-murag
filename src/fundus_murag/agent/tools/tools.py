@@ -71,6 +71,7 @@ def get_sim_search_tool() -> Tool:
             "fundus_collection_description_similarity_search": vdb.fundus_collection_description_similarity_search,
             "find_fundus_records_with_similar_image": vdb.find_fundus_records_with_similar_image,
             "find_fundus_records_with_images_similar_to_the_text_query": vdb.find_fundus_records_with_images_similar_to_the_text_query,
+            "find_fundus_records_with_images_similar_to_the_user_provided_image": vdb.find_fundus_records_with_images_similar_to_the_user_provided_image,
             "find_fundus_records_with_titles_similar_to_the_text_query": vdb.find_fundus_records_with_titles_similar_to_the_text_query,
         }
     )

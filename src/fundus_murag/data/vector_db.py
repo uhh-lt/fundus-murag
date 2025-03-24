@@ -30,6 +30,7 @@ from fundus_murag.data.schema import (
     FUNDUS_RECORD_SCHEMA_REFS,
     FUNDUS_RECORD_SCHEMA_VECTORIZER,
 )
+from fundus_murag.data.user_image_store import UserImageStore
 from fundus_murag.data.utils import (
     load_fundus_collection_embeddings_df,
     load_fundus_collections_df,
@@ -47,6 +48,7 @@ class VectorDB(metaclass=SingletonMeta):
         self._client = self._connect_to_weaviate()
         self._fundus_ml_client = FundusMLClient(self._config.fundus.ml_url)
         self._query_rewriter = QueryRewriter()
+        self._user_image_store = UserImageStore()
 
         # we load the dataframes because some operations are faster and much easier to do in pandas
         self._records_df = load_fundus_records_df(
@@ -685,6 +687,37 @@ class VectorDB(metaclass=SingletonMeta):
         text_embedding = self._fundus_ml_client.compute_text_embedding(query, return_tensor="np").tolist()  # type: ignore
         results = self._fundus_record_image_similarity_search(
             text_embedding,
+            search_in_collections=search_in_collections,
+            top_k=top_k,
+        )
+        return results
+
+    def find_fundus_records_with_images_similar_to_the_user_provided_image(
+        self,
+        user_image_id: str,
+        search_in_collections: list[str] | None = None,
+        top_k: int = 10,
+    ) -> list[FundusRecordSemanticSearchResult]:
+        """
+        Find `FundusRecord`s with images similar to the user-provided image.
+        This uses image similarity search based on image embeddings.
+        Use this if a user provides an image and you want to find similar images in the database.
+
+        Args:
+            user_image_id (str): The unique identifier of the user-provided image.
+            search_in_collections (list[str], optional): Names of `FundusCollection`s to restrict the search. Defaults to None.
+            top_k (int, optional): Number of top results to return. Defaults to 10
+
+        Returns:
+            list[FundusRecordSemanticSearchResult]: `FundusRecord`s search results with similarity scores.
+        """
+        base64_user_image: str = self._user_image_store.load_user_image(user_image_id, base64=True)  # type: ignore
+        base64_user_image = base64_user_image.split(",")[-1]
+        image_embedding = self._fundus_ml_client.compute_image_embedding(
+            base64_image=base64_user_image, return_tensor="np"
+        ).tolist()  # type: ignore
+        results = self._fundus_record_image_similarity_search(
+            image_embedding,
             search_in_collections=search_in_collections,
             top_k=top_k,
         )

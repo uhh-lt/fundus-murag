@@ -35,6 +35,17 @@ async def send_message(request: MessageRequest):
             session=request.session_id,
         )
 
+        # hacky way to handle the case where the user wants to find similar images to the one they provided.
+        # We alter the prompt here because we want to display the original message in the frontend ...
+        if (
+            request.message == "Find FundusRecords with similar images to this one"
+            and request.user_image_id is not None
+        ):
+            request.message = (
+                "Find FundusRecords with images similar to the user provided image "
+                f"with the following ID: `user_image_id={request.user_image_id}`"
+            )
+
         response_text = assistant.send_user_message(
             text_message=request.message,
         )
