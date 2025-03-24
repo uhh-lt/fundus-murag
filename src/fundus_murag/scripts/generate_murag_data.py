@@ -64,9 +64,7 @@ def _load_dataframes(root: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     print(f"Loaded {len(records_df)} records from {root / 'records.pq'}")
 
     # drop collections that are not in records
-    collections_df = collections_df[
-        collections_df["collection_name"].isin(records_df["collection_name"])
-    ]
+    collections_df = collections_df[collections_df["collection_name"].isin(records_df["collection_name"])]
     print(f"Filtered {len(collections_df)} collections that are in records")
 
     return collections_df, records_df
@@ -89,9 +87,7 @@ def _generate_collection_title_embeddings(
         data.embedding_type.append(EmbeddingType.TEXT)
         data.embedding_name.append(EmbeddingName.COLLECTION_TITLE)
 
-        text_embedding_output: EmbeddingsOutput = client.compute_text_embedding(
-            row["title"], None
-        )  # type: ignore
+        text_embedding_output: EmbeddingsOutput = client.compute_text_embedding(row["title"], None)  # type: ignore
 
         data.embedding_model.append(text_embedding_output.embedding_model)
         data.embedding.append(text_embedding_output.embeddings)  # type: ignore
@@ -117,9 +113,7 @@ def _generate_collection_description_embeddings(
         data.embedding_type.append(EmbeddingType.TEXT)
         data.embedding_name.append(EmbeddingName.COLLECTION_DESCRIPTION)
 
-        text_embedding_output: EmbeddingsOutput = client.compute_text_embedding(
-            row["description"], None
-        )  # type: ignore
+        text_embedding_output: EmbeddingsOutput = client.compute_text_embedding(row["description"], None)  # type: ignore
 
         data.embedding_model.append(text_embedding_output.embedding_model)
         data.embedding.append(text_embedding_output.embeddings)  # type: ignore
@@ -226,32 +220,22 @@ def _generate_record_embeddings(
     n_proc: int = 4,
 ) -> pd.DataFrame:
     if n_proc == 1:
-        image_embeddings = _generate_record_image_embeddings(
-            records_df, fundus_ml_url, batch_size
-        )
-        title_embeddings = _generate_record_title_embeddings(
-            records_df, fundus_ml_url, batch_size
-        )
+        image_embeddings = _generate_record_image_embeddings(records_df, fundus_ml_url, batch_size)
+        title_embeddings = _generate_record_title_embeddings(records_df, fundus_ml_url, batch_size)
         embeddings = pd.concat([image_embeddings, title_embeddings])
     else:
         splits = np.array_split(records_df, n_proc)
         with Pool(n_proc) as pool:
             image_embeddings = pool.starmap(
                 _generate_record_image_embeddings,
-                [
-                    (split, fundus_ml_url, batch_size, wid)
-                    for wid, split in enumerate(splits)
-                ],
+                [(split, fundus_ml_url, batch_size, wid) for wid, split in enumerate(splits)],
             )
         image_embeddings = pd.concat(image_embeddings)
 
         with Pool(n_proc) as pool:
             title_embeddings = pool.starmap(
                 _generate_record_title_embeddings,
-                [
-                    (split, fundus_ml_url, batch_size, wid)
-                    for wid, split in enumerate(splits)
-                ],
+                [(split, fundus_ml_url, batch_size, wid) for wid, split in enumerate(splits)],
             )
         title_embeddings = pd.concat(title_embeddings)
 
@@ -270,9 +254,7 @@ def _generate_collection_embeddings(
     )
     embeddings = title_embeddings
 
-    description_embeddings = _generate_collection_description_embeddings(
-        collections_df, fundus_ml_url
-    )
+    description_embeddings = _generate_collection_description_embeddings(collections_df, fundus_ml_url)
     embeddings = pd.concat([title_embeddings, description_embeddings])
 
     return embeddings
@@ -283,11 +265,7 @@ def _get_image_path(row, record_pix_dir: Path):
         return row["image_path"]
     matches = list(
         (record_pix_dir / row.collection_name).rglob(
-            str(
-                (record_pix_dir / row.collection_name / row.image_name)
-                .stem.replace("+", " ")
-                .replace("%C2%A0", " ")
-            )
+            str((record_pix_dir / row.collection_name / row.image_name).stem.replace("+", " ").replace("%C2%A0", " "))
             + "*"
         )
     )
@@ -298,9 +276,7 @@ def _get_image_path(row, record_pix_dir: Path):
 
 def _add_contacts(contacts_dir: Path, collections_df: pd.DataFrame) -> pd.DataFrame:
     contacts_df = pd.read_json(contacts_dir / "contacts.json")
-    contacts_df = contacts_df.explode("content_objects").drop(
-        columns=["created_at", "updated_at"]
-    )
+    contacts_df = contacts_df.explode("content_objects").drop(columns=["created_at", "updated_at"])
 
     def get_contacts(collection_name: str) -> list[dict[str, str]]:
         contacts = contacts_df[contacts_df.content_objects == collection_name]
@@ -318,9 +294,7 @@ def _add_contacts(contacts_dir: Path, collections_df: pd.DataFrame) -> pd.DataFr
     return cdf
 
 
-def _add_collection_fields(
-    fields_dir: Path, collections_df: pd.DataFrame
-) -> pd.DataFrame:
+def _add_collection_fields(fields_dir: Path, collections_df: pd.DataFrame) -> pd.DataFrame:
     cdf = collections_df.copy()
     # read field jsons
     fields_dfs = {}
@@ -352,10 +326,7 @@ def _add_collection_fields(
                     data["labels"].append(v["labels"].values)
                 else:
                     data["labels"].append(
-                        [
-                            {"de": ld, "en": le}
-                            for ld, le in zip(list(v["label_de"]), list(v["label_en"]))
-                        ]
+                        [{"de": ld, "en": le} for ld, le in zip(list(v["label_de"]), list(v["label_en"]))]
                     )
 
                 title_fields = {}
@@ -365,13 +336,9 @@ def _add_collection_fields(
                         continue
 
                     pos = None
-                    if "title_field_position" in row and not pd.isna(
-                        row["title_field_position"]
-                    ):
+                    if "title_field_position" in row and not pd.isna(row["title_field_position"]):
                         pos = int(row["title_field_position"])
-                    elif "title_field_prio" in row and not pd.isna(
-                        row["title_field_prio"]
-                    ):
+                    elif "title_field_prio" in row and not pd.isna(row["title_field_prio"]):
                         pos = int(row["title_field_prio"])
 
                     if pos is not None and pos >= 0:
@@ -410,9 +377,7 @@ def _add_collection_fields(
 
     # merge fields into collections df
     cdf = cdf.merge(fields_df, on="collection_name", how="left")
-    cdf.title_fields = cdf.title_fields.apply(
-        lambda tf: tf if isinstance(tf, list) else []
-    )
+    cdf.title_fields = cdf.title_fields.apply(lambda tf: tf if isinstance(tf, list) else [])
     cdf.fields = cdf.fields.apply(lambda tf: tf if isinstance(tf, list) else [])
 
     return cdf
@@ -441,9 +406,7 @@ def _create_collections_df(
         collection_data["description_de"].append(data["description"])
 
     collections_df = pd.DataFrame(collection_data)
-    collections_df["murag_id"] = collections_df.apply(
-        lambda x: str(uuid.uuid4()), axis=1
-    )
+    collections_df["murag_id"] = collections_df.apply(lambda x: str(uuid.uuid4()), axis=1)
     murag_id = collections_df.pop("murag_id")
     collections_df.insert(0, "murag_id", murag_id)
 
@@ -453,9 +416,7 @@ def _create_collections_df(
     return collections_df
 
 
-def _resolve_image_paths(
-    records_df: pd.DataFrame, record_pix_dir: Path, worker_id: int = 0
-) -> pd.DataFrame:
+def _resolve_image_paths(records_df: pd.DataFrame, record_pix_dir: Path, worker_id: int = 0) -> pd.DataFrame:
     tqdm.pandas(
         desc="Resolving image paths",
         total=len(records_df),
@@ -465,22 +426,16 @@ def _resolve_image_paths(
     records_df["image_path"] = records_df.progress_apply(  # type: ignore
         partial(_get_image_path, record_pix_dir=record_pix_dir), axis=1
     )
-    records_df.image_path = records_df.image_path.apply(
-        lambda x: str(x) if x is not None else None
-    )
+    records_df.image_path = records_df.image_path.apply(lambda x: str(x) if x is not None else None)
     return records_df
 
 
 def _get_record_title(row, collections_df: pd.DataFrame) -> str:
     collection_name = row["collection_name"]
-    collection = collections_df[collections_df.collection_name == collection_name].iloc[
-        0
-    ]
+    collection = collections_df[collections_df.collection_name == collection_name].iloc[0]
     title_fields = collection.title_fields
     details = {
-        k.replace("details_", ""): v
-        for k, v in row.items()
-        if k.startswith("details_") and v is not None and v != ""
+        k.replace("details_", ""): v for k, v in row.items() if k.startswith("details_") and v is not None and v != ""
     }
 
     if "Title" in details:
@@ -505,17 +460,13 @@ def _create_records_df(
     n_proc: int = 4,
 ) -> pd.DataFrame:
     # read all collection record files
-    collection_records = {
-        fn.stem: pd.read_json(fn) for fn in collection_records_dir.glob("*.json")
-    }
+    collection_records = {fn.stem: pd.read_json(fn) for fn in collection_records_dir.glob("*.json")}
     for name, df in collection_records.items():
         df["collection_name"] = name
     records_df = pd.concat(collection_records.values())
     records_df = records_df[records_df["pix"].apply(len).gt(0)]
     records_df = records_df[["id", "catalogno", "collection_name", "details", "pix"]]
-    print(
-        f"All collections with at least one image: {len(records_df.collection_name.unique())}"
-    )
+    print(f"All collections with at least one image: {len(records_df.collection_name.unique())}")
     records_df["catalogno"] = records_df["catalogno"].astype(str)
     records_df = records_df.explode("pix").reset_index(drop=True)
     records_df = records_df.rename(columns={"id": "fundus_id", "pix": "image_name"})
@@ -528,9 +479,7 @@ def _create_records_df(
     ).drop("details", axis=1)
 
     # Add title
-    records_df["title"] = records_df.apply(
-        lambda x: _get_record_title(x, collections_df), axis=1
-    )
+    records_df["title"] = records_df.apply(lambda x: _get_record_title(x, collections_df), axis=1)
     title = records_df.pop("title")
     records_df.insert(0, "title", title)
 
@@ -548,9 +497,10 @@ def _create_records_df(
             ).reset_index(drop=True)
     found_frac = len(records_df.dropna(subset="image_path")) / len(records_df)
     records_df = records_df.dropna(subset=["image_path"]).dropna(subset=["image_name"])
-    print(
-        f"Found {found_frac:.4%} of images. Final number of records: {len(records_df)}"
-    )
+    print(f"Found {found_frac:.4%} of images. Final number of records: {len(records_df)}")
+
+    # relative image paths
+    records_df["image_path"] = records_df["image_path"].apply(lambda x: x.replace(str(record_pix_dir.parent), ""))
 
     # Add murag_id as a unique identifier because fundus_id is not unique (e.g. for multiple images per record)
     records_df["murag_id"] = records_df.apply(lambda x: str(uuid.uuid4()), axis=1)
@@ -579,9 +529,7 @@ def _generate_dataframes(
     assert fields_dir.exists(), f"{fields_dir} does not exist"
     assert contacts_dir.exists(), f"{contacts_dir} does not exist"
 
-    collections_df = _create_collections_df(
-        content_objects_dir, fields_dir, contacts_dir
-    )
+    collections_df = _create_collections_df(content_objects_dir, fields_dir, contacts_dir)
     collections_df.to_parquet(out_p / "collections.pq", index=False)
     print(f"Wrote {len(collections_df)} collections to {out_p / 'collections.pq'}")
 
@@ -609,12 +557,8 @@ def _generate_embeddings(
             collections_df,
             fundus_ml_url,
         )
-        collection_embeddings.to_parquet(
-            out_p / "collection_embeddings.pq", index=False
-        )
-        print(
-            f"Wrote {len(collection_embeddings)} collection embeddings to {out_p / 'collection_embeddings.pq'}"
-        )
+        collection_embeddings.to_parquet(out_p / "collection_embeddings.pq", index=False)
+        print(f"Wrote {len(collection_embeddings)} collection embeddings to {out_p / 'collection_embeddings.pq'}")
     if gen_record_embeddings:
         record_embeddings = _generate_record_embeddings(
             records_df,
@@ -623,9 +567,7 @@ def _generate_embeddings(
             n_proc,
         )
         record_embeddings.to_parquet(out_p / "record_embeddings.pq", index=False)
-        print(
-            f"Wrote {len(record_embeddings)} record embeddings to {out_p / 'record_embeddings.pq'}"
-        )
+        print(f"Wrote {len(record_embeddings)} record embeddings to {out_p / 'record_embeddings.pq'}")
 
 
 def main(
