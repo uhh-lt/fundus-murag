@@ -730,7 +730,7 @@ class VectorDB(metaclass=SingletonMeta):
     @mlflow.trace(
         span_type=SpanType.TOOL,
     )
-    def find_fundus_records_with_images_similar_to_the_user_provided_image(
+    def find_fundus_records_with_images_similar_to_user_image(
         self,
         user_image_id: str,
         search_in_collections: list[str] | None = None,

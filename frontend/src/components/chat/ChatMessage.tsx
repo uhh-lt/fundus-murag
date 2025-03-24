@@ -109,10 +109,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
 
         return (
             <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
-                <Paper
-                    elevation={4}
-                    sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "primary.main", maxWidth: "80%", minWidth: "40%" }}
-                >
+                <Paper elevation={4} sx={{ px: 2, py: 1, my: 1, mx: 2, bgcolor: "primary.main", width: "90%" }}>
                     <Typography variant="subtitle2">{senderName}</Typography>
                     <Divider />
                     <Box mt={1}>
@@ -125,9 +122,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
 
                         {/* Render FundusRecord components in a Grid layout */}
                         {recordIds.length > 0 && (
-                            <Grid container spacing={2} columns={12}>
+                            <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                                 {recordIds.map((id, index) => (
-                                    <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={`record-${id}-${index}`}>
+                                    <Grid size={{ xs: 12, md: 4 }} key={`record-${id}-${index}`}>
                                         <FundusRecordCard muragId={id} />
                                     </Grid>
                                 ))}
@@ -155,8 +152,8 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ chatMessage, senderName }) =>
                     my: 1,
                     mx: 2,
                     bgcolor: "secondary.dark",
-                    maxWidth: "80%",
-                    minWidth: "40%",
+                    maxWidth: "90%",
+                    minWidth: "33%",
                 }}
             >
                 <Typography variant="subtitle2">{senderName}</Typography>
