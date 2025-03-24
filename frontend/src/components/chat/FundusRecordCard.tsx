@@ -29,6 +29,7 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [elevation, setElevation] = useState(1);
     const { getFundusRecord, getFundusRecordImage } = useAgentService();
 
     useEffect(() => {
@@ -58,6 +59,14 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
 
     const handleCloseModal = () => {
         setModalOpen(false);
+    };
+
+    const handleMouseOver = () => {
+        setElevation(16);
+    };
+
+    const handleMouseOut = () => {
+        setElevation(1);
     };
 
     if (loading) {
@@ -183,9 +192,12 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                 sx={{
                     display: "flex",
                     flexDirection: "column",
+                    transition: "box-shadow 0.2s ease-in-out",
                 }}
-                elevation={5}
+                elevation={elevation}
                 onClick={handleOpenModal}
+                onMouseOver={handleMouseOver}
+                onMouseOut={handleMouseOut}
             >
                 <CardActionArea>
                     <CardMedia

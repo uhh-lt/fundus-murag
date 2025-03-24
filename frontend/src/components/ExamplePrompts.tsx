@@ -7,7 +7,7 @@ const EXAMPLE_PROMPTS = [
     "What collections are contained in FUNDus?",
     "Show me a random FUNDus! record!",
     "Help me creating an biology exam for my students on the topic of beatles.",
-    "Show me a a greek statue!",
+    "Show me a greek statue!",
     "I need to prepare a presentation on minerals for by geology class.",
     "I want to learn about ancient history. Do you have any resources?",
 ];

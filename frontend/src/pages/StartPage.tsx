@@ -15,12 +15,13 @@ const StartPage: React.FC = () => {
     const { loading, error, getAvailableModels } = useAssistantService();
     const [availableModels, setAvailableModels] = useState<AgentModel[]>([]);
     const navigate = useNavigate();
+    const defaultModelName = "google/gemini-2.0-flash";
 
     useEffect(() => {
         const fetchModels = async () => {
             const models = await getAvailableModels();
             setAvailableModels(models);
-            const defaultModel = models.find((model) => model.name === "google/gemini-2.0-flash");
+            const defaultModel = models.find((model) => model.name === defaultModelName);
             setSelectedModel(defaultModel);
         };
 
@@ -95,6 +96,13 @@ const StartPage: React.FC = () => {
                             isLoading={loading}
                             isError={!!error}
                         />
+
+                        {selectedModel?.name != defaultModelName && (
+                            <Alert severity="warning" sx={{ my: 1, textAlign: "center" }}>
+                                The app works best with the default model <em>{defaultModelName}</em>. Some features may
+                                not work as expected...
+                            </Alert>
+                        )}
 
                         <Divider sx={{ marginY: 2 }} />
 

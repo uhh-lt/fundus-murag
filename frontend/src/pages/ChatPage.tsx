@@ -107,7 +107,8 @@ const ChatPage: React.FC = () => {
                         }}
                     >
                         <Typography variant="h6">
-                            🔮 Chat with <strong>FUNDus! Agent</strong> using <em>{selectedModel.display_name}</em>
+                            🔮 Chat with the <strong>FUNDus! Assistant</strong> using{" "}
+                            <em>{selectedModel.display_name}</em>
                         </Typography>
 
                         <Divider sx={{ my: 1 }} />
