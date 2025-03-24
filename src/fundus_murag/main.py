@@ -42,11 +42,13 @@ from fundus_murag.api.routers import (  # noqa: E402
     lookup,
     random,
     search,
+    user_image,
 )
 
 app.include_router(general.router)
 app.include_router(lookup.router)
 app.include_router(random.router)
+app.include_router(user_image.router)
 app.include_router(search.router)
 app.include_router(agents.router)
 app.include_router(assistant.router)

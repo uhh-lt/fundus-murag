@@ -22,7 +22,7 @@ async def send_message(request: MessageRequest):
 
         response_text = agent.handle_user_request(
             user_request=request.message,
-            base64_image=request.base64_image,
+            base64_image=request.user_image_id,
         )
 
         return AgentResponse(
