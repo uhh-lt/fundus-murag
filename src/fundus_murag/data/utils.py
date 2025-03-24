@@ -129,3 +129,9 @@ def load_fundus_collection_embeddings_df(
     )
 
     return collection_embeddings_df
+
+
+def encode_image(image: Image.Image) -> str:
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
