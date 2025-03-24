@@ -3,9 +3,11 @@ import time
 from functools import reduce
 from typing import Any, Literal
 
+import mlflow
 import pandas as pd
 import weaviate
 from loguru import logger
+from mlflow.entities import SpanType
 from tqdm import tqdm
 from weaviate.classes.query import Filter, MetadataQuery, QueryNested, QueryReference
 
@@ -359,6 +361,9 @@ class VectorDB(metaclass=SingletonMeta):
 
         return records
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_total_number_of_fundus_records(self) -> int:
         """
         Get the total number of FUNDus! records in the database.
@@ -375,6 +380,9 @@ class VectorDB(metaclass=SingletonMeta):
         except Exception:
             return 0
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_total_number_of_fundus_collections(self) -> int:
         """
         Get the total number of FUNDus! collections in the database.
@@ -391,6 +399,9 @@ class VectorDB(metaclass=SingletonMeta):
         except Exception:
             return 0
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def list_all_fundus_collections(self) -> list[FundusCollection]:
         """
         List all `FundusCollection`s in the FUNDus! database.
@@ -403,6 +414,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = self._create_fundus_collection_from_query_results(res)
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_fundus_collection_by_murag_id(
         self,
         murag_id: str,
@@ -478,6 +492,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = matches[0][0]
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_fundus_collection_by_name(
         self,
         collection_name: str,
@@ -504,6 +521,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = self._create_fundus_collection_from_query_results(res)
         return results[0]
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_random_fundus_collection(
         self,
         n: int = 1,
@@ -525,6 +545,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = [self.get_fundus_collection_by_name(collection_name=cn) for cn in collection_names]
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_random_fundus_records(
         self,
         n: int = 1,
@@ -557,6 +580,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = [self.get_fundus_record_by_murag_id(murag_id=murag_id) for murag_id in murag_ids]
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_fundus_record_by_murag_id(
         self,
         murag_id: str,
@@ -612,6 +638,9 @@ class VectorDB(metaclass=SingletonMeta):
         )
         return result
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_fundus_records_by_fundus_id(
         self,
         fundus_id: int,
@@ -636,6 +665,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = self._create_fundus_record_from_query_results(res)
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def find_fundus_records_with_similar_image(
         self,
         murag_id: str,
@@ -664,6 +696,9 @@ class VectorDB(metaclass=SingletonMeta):
         )
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def find_fundus_records_with_images_similar_to_the_text_query(
         self,
         query: str,
@@ -692,6 +727,9 @@ class VectorDB(metaclass=SingletonMeta):
         )
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def find_fundus_records_with_images_similar_to_the_user_provided_image(
         self,
         user_image_id: str,
@@ -723,6 +761,9 @@ class VectorDB(metaclass=SingletonMeta):
         )
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def find_fundus_records_with_titles_similar_to_the_text_query(
         self,
         query: str,
@@ -920,6 +961,9 @@ class VectorDB(metaclass=SingletonMeta):
 
         return rec[0]
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def fundus_record_title_lexical_search(
         self,
         query: str,
@@ -992,6 +1036,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = self._create_fundus_record_from_query_results(results)
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def fundus_collection_lexical_search(
         self,
         query: str,
@@ -1073,6 +1120,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = self._create_fundus_collection_from_query_results(res)
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def fundus_collection_description_similarity_search(
         self,
         query_embedding: list[float],
@@ -1095,6 +1145,9 @@ class VectorDB(metaclass=SingletonMeta):
         )
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def fundus_collection_title_similarity_search(
         self,
         query_embedding: list[float],
@@ -1152,6 +1205,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = simsearch_results
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_number_of_records_per_collection(self) -> dict[str, int]:
         """
         Get the number of records in each collection.
@@ -1162,6 +1218,9 @@ class VectorDB(metaclass=SingletonMeta):
         results = self._records_df.groupby("collection_name").size().to_dict()  # type: ignore
         return results
 
+    @mlflow.trace(
+        span_type=SpanType.TOOL,
+    )
     def get_number_of_records_in_collection(self, collection_name: str) -> int:
         """
         Get the number of records in the specified collection.

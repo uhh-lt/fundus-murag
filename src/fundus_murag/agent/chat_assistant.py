@@ -4,10 +4,12 @@ from functools import cache
 from typing import Any, Iterable
 
 import google.auth.transport.requests
+import mlflow
 import openai
 import pandas as pd
 from google.auth import default
 from loguru import logger
+from mlflow.entities import SpanType
 from openai.types.chat import ChatCompletionMessageParam
 from openai.types.chat.chat_completion import ChatCompletion
 from openai.types.chat.chat_completion_assistant_message_param import (
@@ -268,6 +270,7 @@ class ChatAssistant:
             logger.error(f"[{self.assistant_name}] Unexpected Error of Type {type(e)}: {e}")
             raise e
 
+    @mlflow.trace(span_type=SpanType.AGENT)
     def _run_agentic_loop(self) -> str:
         # 1. Send the messages in the chat history to the model
         response = self._create_chat_completion_from_history()
