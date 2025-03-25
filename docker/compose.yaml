@@ -21,8 +21,8 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: [ "1" ]
-              capabilities: [ gpu ]
+              device_ids: ["1"]
+              capabilities: [gpu]
 
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
@@ -48,7 +48,6 @@ services:
       - fundus_murag
     profiles:
       - weaviate
-
 
   weaviate-dev:
     image: cr.weaviate.io/semitechnologies/weaviate:1.26.5
@@ -80,7 +79,7 @@ services:
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:latest
-    user: 1000:1000
+    user: ${UID:-1000}:${GID:-1000}
     command:
       - mlflow
       - ui
@@ -91,6 +90,7 @@ services:
     ports:
       - "${MLFLOW_EXPOSED:-5000}:5000"
     volumes:
+      - ./mlflow_artifacts:/mlartifacts
       - ./mlflow_runs:/mlruns
     restart: on-failure
     networks:
@@ -103,7 +103,7 @@ services:
     ports:
       - "${FRONTEND_EXPOSED:-8080}:80"
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:80/heartbeat || exit 1" ]
+      test: ["CMD-SHELL", "curl -f http://localhost:80/heartbeat || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -114,7 +114,6 @@ services:
       - fundus-murag-backend
     profiles:
       - frontend
-
 
   fundus-murag-backend:
     image: p0w3r/fundus_murag_backend:latest
