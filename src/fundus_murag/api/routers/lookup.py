@@ -42,12 +42,8 @@ def list_all_collections():
     summary="Get a `FundusCollection` by its name or MURAG ID.",
 )
 def get_fundus_collection_by_id(
-    collection_name: str | None = Query(
-        None, description="Unique internal name for the collection."
-    ),
-    murag_id: str | None = Query(
-        None, description="Unique identifier for the collection in the VectorDB."
-    ),
+    collection_name: str | None = Query(None, description="Unique internal name for the collection."),
+    murag_id: str | None = Query(None, description="Unique identifier for the collection in the VectorDB."),
 ):
     try:
         if collection_name:
@@ -125,17 +121,13 @@ def get_fundus_records_by_id(
         None,
         description="An identifier for the `FundusRecord`. If a `FundusRecord` has multiple images, the records share the `fundus_id`.",
     ),
-    murag_id: str | None = Query(
-        None, description="Unique identifier for the record in the VectorDB."
-    ),
+    murag_id: str | None = Query(None, description="Unique identifier for the record in the VectorDB."),
 ):
     try:
         if fundus_id is None and murag_id is None:
             raise ValueError("Either `fundus_id` or `murag_id` must be provided.")
         elif murag_id is not None and fundus_id is not None:
-            raise ValueError(
-                "Either `fundus_id` or `murag_id` must be provided, not both."
-            )
+            raise ValueError("Either `fundus_id` or `murag_id` must be provided, not both.")
         elif murag_id:
             record = vdb.get_fundus_record_by_murag_id(murag_id=murag_id)
         elif fundus_id:
@@ -159,9 +151,7 @@ def get_fundus_records_by_id(
     summary="Returns the `FundusRecordImage`s from the `FundusRecord` with the specified `murag_id`.",
 )
 def get_fundus_record_image_by_murag_id(
-    murag_id: str = Query(
-        ..., description="Unique identifier for the `FundusRecord` in the VectorDB."
-    ),
+    murag_id: str = Query(..., description="Unique identifier for the `FundusRecord` in the VectorDB."),
 ):
     try:
         record_img = vdb.get_fundus_record_image_by_murag_id(murag_id=murag_id)

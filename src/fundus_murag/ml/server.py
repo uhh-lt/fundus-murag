@@ -37,21 +37,11 @@ class SigLipLitAPI(ls.LitAPI):
 
     def decode_request(self, request: EmbeddingsInput) -> dict[str, list | None]:
         if request.input_type == "text":
-            text = (
-                request.input_data
-                if isinstance(request.input_data, list)
-                else [request.input_data]
-            )
+            text = request.input_data if isinstance(request.input_data, list) else [request.input_data]
             image = None
         elif request.input_type == "image":
-            image_data = (
-                request.input_data
-                if isinstance(request.input_data, list)
-                else [request.input_data]
-            )
-            image = [
-                Image.open(io.BytesIO(base64.b64decode(b64))) for b64 in image_data
-            ]
+            image_data = request.input_data if isinstance(request.input_data, list) else [request.input_data]
+            image = [Image.open(io.BytesIO(base64.b64decode(b64))) for b64 in image_data]
             text = None
         else:
             raise ValueError("Invalid request type")
@@ -65,9 +55,7 @@ class SigLipLitAPI(ls.LitAPI):
 
     def _compute_image_embedding(self, image_features: BatchFeature) -> torch.Tensor:
         with torch.no_grad():
-            img_emb = self.model.get_image_features(
-                **image_features.to(self.device, dtype=TORCH_DTYPE)
-            )
+            img_emb = self.model.get_image_features(**image_features.to(self.device, dtype=TORCH_DTYPE))
         return img_emb
 
     def predict(self, inputs: dict[str, list | None]) -> torch.Tensor:

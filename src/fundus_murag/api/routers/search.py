@@ -29,9 +29,7 @@ mlc = FundusMLClient()
 )
 def fundus_record_i2i_similarity_search(query: SimilaritySearchQuery):
     try:
-        query_embedding = mlc.compute_image_embedding(
-            base64_image=query.query, return_tensor="np"
-        ).tolist()  # type: ignore
+        query_embedding = mlc.compute_image_embedding(base64_image=query.query, return_tensor="np").tolist()  # type: ignore
         return vdb._fundus_record_image_similarity_search(
             query_embedding=query_embedding,
             search_in_collections=query.collection_names,
@@ -48,9 +46,7 @@ def fundus_record_i2i_similarity_search(query: SimilaritySearchQuery):
 )
 def fundus_record_t2i_similarity_search(query: SimilaritySearchQuery):
     try:
-        query_embedding = mlc.compute_text_embedding(
-            text=query.query, return_tensor="np"
-        ).tolist()  # type: ignore
+        query_embedding = mlc.compute_text_embedding(text=query.query, return_tensor="np").tolist()  # type: ignore
         return vdb._fundus_record_image_similarity_search(
             query_embedding=query_embedding,
             search_in_collections=query.collection_names,
@@ -67,9 +63,7 @@ def fundus_record_t2i_similarity_search(query: SimilaritySearchQuery):
 )
 def fundus_record_i2t_similarity_search(query: SimilaritySearchQuery):
     try:
-        query_embedding = mlc.compute_image_embedding(
-            base64_image=query.query, return_tensor="np"
-        ).tolist()  # type: ignore
+        query_embedding = mlc.compute_image_embedding(base64_image=query.query, return_tensor="np").tolist()  # type: ignore
         return vdb._fundus_record_title_similarity_search(
             query_embedding=query_embedding,
             search_in_collections=query.collection_names,
@@ -86,9 +80,7 @@ def fundus_record_i2t_similarity_search(query: SimilaritySearchQuery):
 )
 def fundus_record_t2t_similarity_search(query: SimilaritySearchQuery):
     try:
-        query_embedding = mlc.compute_text_embedding(
-            text=query.query, return_tensor="np"
-        ).tolist()  # type: ignore
+        query_embedding = mlc.compute_text_embedding(text=query.query, return_tensor="np").tolist()  # type: ignore
         return vdb._fundus_record_title_similarity_search(
             query_embedding=query_embedding,
             search_in_collections=query.collection_names,
@@ -140,9 +132,7 @@ def fundus_collection_lexical_search(query: CollectionLexicalSearchQuery):
     summary="Perform a semantic similarity search on `FundusCollection`s based on their description.",
 )
 def fundus_collection_description_similarity_search(query: SimilaritySearchQuery):
-    query_embedding = mlc.compute_text_embedding(
-        text=query.query, return_tensor="np"
-    ).tolist()  # type: ignore
+    query_embedding = mlc.compute_text_embedding(text=query.query, return_tensor="np").tolist()  # type: ignore
     try:
         return vdb.fundus_collection_description_similarity_search(
             query_embedding=query_embedding,
@@ -159,9 +149,7 @@ def fundus_collection_description_similarity_search(query: SimilaritySearchQuery
 )
 def fundus_collection_title_similarity_search(query: SimilaritySearchQuery):
     try:
-        query_embedding = mlc.compute_text_embedding(
-            text=query.query, return_tensor="np"
-        ).tolist()  # type: ignore
+        query_embedding = mlc.compute_text_embedding(text=query.query, return_tensor="np").tolist()  # type: ignore
         return vdb.fundus_collection_title_similarity_search(
             query_embedding=query_embedding,
             top_k=query.top_k,

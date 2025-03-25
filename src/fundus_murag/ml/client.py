@@ -29,9 +29,7 @@ class FundusMLClient(metaclass=SingletonMeta):
             if self._is_ready():
                 logger.info(f"Fundus ML is ready at {self._fundus_ml_url}!")
                 return
-            logger.info(
-                f"Waiting {sleep_t}s for Fundus ML to be ready at {self._fundus_ml_url}..."
-            )
+            logger.info(f"Waiting {sleep_t}s for Fundus ML to be ready at {self._fundus_ml_url}...")
             time.sleep(sleep_t)
             s -= sleep_t
 
@@ -85,9 +83,7 @@ class FundusMLClient(metaclass=SingletonMeta):
         return_tensor: Literal["pt", "np"] | None = "np",
         squeeze: bool = True,
     ) -> "EmbeddingsOutput | np.ndarray | torch.Tensor":
-        response = requests.post(
-            f"{self._fundus_ml_url}/embed", json=input.model_dump()
-        )
+        response = requests.post(f"{self._fundus_ml_url}/embed", json=input.model_dump())
         response.raise_for_status()
         response_json = response.json()
         emb = EmbeddingsOutput.model_validate(response_json)
@@ -103,11 +99,7 @@ class FundusMLClient(metaclass=SingletonMeta):
             if squeeze:
                 emb = emb.squeeze()
         else:
-            if (
-                squeeze
-                and len(emb.embeddings) == 1
-                and isinstance(emb.embeddings[0], list)
-            ):
+            if squeeze and len(emb.embeddings) == 1 and isinstance(emb.embeddings[0], list):
                 emb.embeddings = emb.embeddings[0]
 
         return emb

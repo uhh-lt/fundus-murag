@@ -35,9 +35,7 @@ def get_random_fundus_collection(
 )
 def get_random_fundus_record(
     n: int = Query(1, description="The number of random records to return."),
-    collection_name: str | None = Query(
-        None, description="Unique internal name for the collection."
-    ),
+    collection_name: str | None = Query(None, description="Unique internal name for the collection."),
 ):
     try:
         return vdb.get_random_fundus_records(n=n, collection_name=collection_name)
