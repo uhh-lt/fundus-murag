@@ -36,3 +36,9 @@ if [ ! -d "templates" ]; then
 else
   echo "templates already exists"
 fi
+
+if [ ! -d "mlflow_runs" ]; then
+  mkdir -v mlflow_runs
+else
+  echo "mlflow_runs already exists"
+fi

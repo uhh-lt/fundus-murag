@@ -7,6 +7,7 @@ google-generativeai==0.8.3
 griffe==1.6.0
 gunicorn==23.0.0
 loguru==0.7.3
+mlflow==2.21.0
 openai==1.66.3
 pandas==2.2.3
 pillow==10.4.0
@@ -15,6 +16,7 @@ pyarrow==17.0.0
 pydantic==2.10.6
 pydantic-settings==2.2.1
 pytest==8.3.5
+python-multipart==0.0.20
 pyyaml
 srsly==2.4.8
 tqdm==4.66.5

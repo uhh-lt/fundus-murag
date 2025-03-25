@@ -78,6 +78,22 @@ services:
     profiles:
       - weaviate-dev
 
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    command:
+      - mlflow
+      - ui
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+    ports:
+      - "${MLFLOW_EXPOSED:-5000}:5000"
+    volumes:
+      - ./mlflow_runs:/mlruns
+    restart: on-failure
+    networks:
+      - fundus_murag
 
   fundus-murag-frontend:
     image: p0w3r/fundus_murag_frontend:latest

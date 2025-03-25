@@ -41,3 +41,8 @@ fundus:
 # Assistant configuration
 assistant:
   default_model: "google/gemini-2.0-flash"
+
+# MLFlow configuration
+mlflow:
+  host: mlflow
+  port: 5000

@@ -49,6 +49,11 @@ class AssistantConfig(BaseSettings):
     default_model: str
 
 
+class MLFlowConfig(BaseSettings):
+    host: str
+    port: int
+
+
 class Config(BaseSettings):
     # to load the config from environment variables with the prefix "FUNDUS_"
     model_config = SettingsConfigDict(
@@ -65,6 +70,7 @@ class Config(BaseSettings):
     openai: OpenAIConfig
     fundus: FundusConfig
     assistant: AssistantConfig
+    mlflow: MLFlowConfig
 
 
 @lru_cache(maxsize=1)
