@@ -80,6 +80,7 @@ services:
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:latest
+    user: 1000:1000
     command:
       - mlflow
       - ui
