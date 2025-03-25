@@ -21,8 +21,8 @@ app:
 # Weaviate database configuration
 weaviate:
   host: localhost
-  http_port: <WEAVIATE_HTTP_EXPOSED>  # Use the port you defined in the `.env.dev` file in the `docker` folder
-  grpc_port: <WEAVIATE_GRPC_EXPOSED>  # Use the port you defined in the `.env.dev` file in the `docker` folder
+  http_port: <WEAVIATE_HTTP_EXPOSED>
+  grpc_port: <WEAVIATE_GRPC_EXPOSED>
 
 # Google Cloud configuration
 google:
@@ -36,8 +36,13 @@ openai:
 
 # FUNDus service configuration
 fundus:
-  ml_url: http://localhost:<FUNDUS_ML_EXPOSED>  # Check the logs of the FUNDus ML service to see the port it is running on. Use the port defined in the `.env.dev` file in the `docker` folder.
+  ml_url: http://localhost:<FUNDUS_ML_EXPOSED>
 
 # Assistant configuration
 assistant:
   default_model: "google/gemini-2.0-flash"
+
+# MLFlow configuration
+mlflow:
+  host: localhost
+  port: <MLFLOW_EXPOSED>
