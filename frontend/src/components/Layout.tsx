@@ -27,7 +27,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Toolbar>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
                         <Link to="/" style={{ color: "inherit", textDecoration: "none" }}>
-                            🔮 FUNDus! Assistant
+                            🔮 Chat with the FUNDus! Assistant
                         </Link>
                     </Typography>
                     <IconButton onClick={toggleColorMode} color="inherit">

@@ -67,7 +67,7 @@ const StartPage: React.FC = () => {
             >
                 <Box sx={{ display: "flex", justifyContent: "center" }}>
                     <Typography variant="h5" gutterBottom>
-                        🔮 Explore FUNDus!
+                        🔮 Explore FUNDus! with an AI Assistant
                     </Typography>
                 </Box>
 
