@@ -42,3 +42,9 @@ if [ ! -d "mlflow_runs" ]; then
 else
   echo "mlflow_runs already exists"
 fi
+
+if [ ! -d "mlflow_artifacts" ]; then
+  mkdir -v mlflow_artifacts
+else
+  echo "mlflow_artifacts already exists"
+fi
