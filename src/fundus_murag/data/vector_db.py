@@ -194,16 +194,17 @@ class VectorDB(metaclass=SingletonMeta):
 
         collection = self._create_fundus_record_schema()
         with collection.batch.fixed_size(batch_size=100, concurrent_requests=16) as batch:
-            for _, row in tqdm(
+            for ridx, row in tqdm(
                 records_df.iterrows(),
                 total=len(records_df),
                 desc="Importing FUNDus! records",
                 leave=True,
             ):
+                img_path = (self._config.data.fundus_data_root + "/" + row["image_path"]).replace("//", "/")
                 try:
-                    base64_image = read_image_bytes(row["image_path"])
+                    base64_image = read_image_bytes(img_path)
                 except Exception:
-                    logger.warning(f"Could not read image at {row['image_path']}. Skipping...")
+                    logger.warning(f"Could not read image at {img_path}. Skipping...")
                     continue
 
                 details = []
@@ -246,6 +247,9 @@ class VectorDB(metaclass=SingletonMeta):
                         .murag_id
                     },
                 )
+
+                if ridx % 100 == 0:  # type: ignore
+                    logger.info(f"Batched {ridx} FUNDus! records for import...")
 
         logger.info(f"Imported {len(records_df)} FUNDus! records.")
 

@@ -126,6 +126,7 @@ services:
       - ../data:/data
       - ../config:/config
       - ./fundus-murag-backend-logs:/logs
+      - /home/7schneid/gitrepos/fundus-json:/data/fundus-json
     restart: on-failure
     networks:
       - fundus_murag
