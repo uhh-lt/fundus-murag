@@ -7,10 +7,11 @@ logging:
 
 # Data files configuration
 data:
-  records_df_file: data/records.pq
-  collections_df_file: data/collections.pq
-  record_embeddings_df_file: data/record_embeddings.pq
-  collections_embeddings_df_file: data/collection_embeddings.pq
+  records_df_file: /ltstorage/shares/projects/fundus-murag/dataframes/records.pq
+  collections_df_file: /ltstorage/shares/projects/fundus-murag/dataframes/collections.pq
+  record_embeddings_df_file: /ltstorage/shares/projects/fundus-murag/dataframes/record_embeddings.pq
+  collections_embeddings_df_file: /ltstorage/shares/projects/fundus-murag/dataframes/collection_embeddings.pq
+  fundus_data_root: /ltstorage/shares/projects/fundus-murag/fundus-json
   user_image_dir: data/user_images
 
 # Application settings

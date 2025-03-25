@@ -18,6 +18,7 @@ class DataConfig(BaseSettings):
     record_embeddings_df_file: str
     collections_embeddings_df_file: str
     user_image_dir: str
+    fundus_data_root: str
 
 
 class AppConfig(BaseSettings):
