@@ -1,4 +1,5 @@
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import BrokenImageIcon from "@mui/icons-material/BrokenImage";
+import ImageSearchIcon from "@mui/icons-material/ImageSearch";
 import RestoreIcon from "@mui/icons-material/Restore";
 import SendIcon from "@mui/icons-material/Send";
 import { Badge, Box, CircularProgress, IconButton, TextField, Tooltip } from "@mui/material";
@@ -86,10 +87,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onReset, showAddIm
     return (
         <Box display="flex" alignItems="center">
             {showAddImage && !(loading || error) && (
-                <Tooltip title="Add an image">
+                <Tooltip title="Search for records with similar images">
                     <IconButton color="info" disabled={disabled} component="label" size="large" sx={{ mr: 2 }}>
-                        <Badge color="info" variant="dot" invisible={!hasImage}>
-                            <AddPhotoAlternateIcon />
+                        <Badge color="success" variant="dot" invisible={!hasImage}>
+                            <ImageSearchIcon />
                         </Badge>
                         <VisuallyHiddenInput type="file" onChange={onAddImage} accept="image/*" />
                     </IconButton>
@@ -105,8 +106,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, onReset, showAddIm
             {showAddImage && error && (
                 <Box sx={{ mr: 2 }}>
                     <Tooltip title="Error uploading image">
-                        <IconButton color="error" disabled>
-                            <AddPhotoAlternateIcon />
+                        <IconButton color="error">
+                            <Badge color="error" variant="dot" invisible={!hasImage}>
+                                <BrokenImageIcon />
+                            </Badge>
                         </IconButton>
                     </Tooltip>
                 </Box>
