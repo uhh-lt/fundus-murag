@@ -8,6 +8,7 @@ docker/models_cache/
 docker/weaviate_data/
 docker/weaviate_data-dev/
 docker/cache/
+docker/mlflow_runs/
 
 config/config.dev.yaml
 config/config.prod.yaml
