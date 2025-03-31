@@ -1,6 +1,6 @@
-# FUNDus! MuRAG
+# CollEx
 
-This repo contains the code for the FUNUus! MuRAG System -- a multimodal RAG-based Assistant to explore the FUNDus! database.
+This repo contains the code for the CollEx System -- a multimodal RAG-based Assistant to explore the CollEx database.
 
 ## Starting the system in Production Mode
 
@@ -8,7 +8,7 @@ This repo contains the code for the FUNUus! MuRAG System -- a multimodal RAG-bas
 
 #### Getting the data
 
-_Note that this only works for LT and HCDS members. If you are not a member, you can request access to the data by contacting the [Florian Schneider](mailto:florian.schneider-1@uni-hamburg.de)._
+_Note that this only works for REDACTED members. If you are not a member, you can request access to the data by contacting [ANOYMIZED](mailto:anonymized@anonoymous.org)._
 
 1. Create a folder `data` in the root of the project
 2. Copy the DataFrames from `/ltstorage/shares/projects/fundus-murag/data` to the `data` folder
@@ -54,11 +54,9 @@ You only need to do this if you want to run the ML service locally, e.g., to cha
 1. Navigate to the `docker` folder
 2. (Optional) If you run the ML service in development mode, remove the `fundusml` profile from the `.env.dev`
 3. Run `docker compose --env-file .env.dev up` in a `tmux` or similar shell to start the dev containers (i.e., Weaviate)
-4. Run `curl http://localhost:<YOUR_FUNDUS_ML_EXPOSED_PORT>/embed` to check whether the FUNDus ML Service is up and running. This should print sth. like `{"detail":"Method Not Allowed"}`
+4. Run `curl http://localhost:<YOUR_FUNDUS_ML_EXPOSED_PORT>/embed` to check whether the CollEx ML Service is up and running. This should print sth. like `{"detail":"Method Not Allowed"}`
 
-### Starting the FUNDus MuRAG Application for Development
+### Starting the CollEx Application for Development
 
-1. Navigate to repository root
-2. Select a port of your choice (e.g., the `FUNDUS_UI_EXPOSED` defined in the `docker/.env` file)
-3. Run `FUNDUS_CONFIG_FILE=config.dev.yaml PYTHONPATH=src mesop --port <PORT OF YOUR CHOICE> src/fundus_murag/ui/main.py` to start the FUNDus MuRAG application.
-4. Open your browser and navigate to `http://localhost:<PORT OF YOUR CHOICE>` to see the application. Don't forget to forward the port if you are running the application on a remote server.
+1. Open the project in VS Code
+2. Run the application as defined in the `launch.json`
