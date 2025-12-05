@@ -17,7 +17,7 @@ import {
 import Grid from "@mui/material/Grid2";
 import React, { useEffect, useState } from "react";
 import { useAgentService } from "../../hooks/useLookupService";
-import { FundusRecord, FundusRecordImage } from "../../types/fundusTypes";
+import { FundusCollection, FundusRecord, FundusRecordImage } from "../../types/fundusTypes";
 
 interface FundusRecordCardProps {
     muragId: string;
@@ -26,11 +26,12 @@ interface FundusRecordCardProps {
 const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
     const [record, setRecord] = useState<FundusRecord | undefined>(undefined);
     const [image, setImage] = useState<FundusRecordImage | undefined>(undefined);
+    const [collection, setCollection] = useState<FundusCollection | undefined>(undefined);
     const [loading, setLoading] = useState<boolean>(true);
     const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [elevation, setElevation] = useState(1);
-    const { getFundusRecord, getFundusRecordImage } = useAgentService();
+    const { getFundusRecord, getFundusRecordImage, getFundusCollectionByName } = useAgentService();
 
     useEffect(() => {
         const fetchRecordData = async () => {
@@ -42,6 +43,11 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                     if (imageData) {
                         setImage(imageData);
                     }
+                    // Fetch collection to get field ordering information
+                    const collectionData = await getFundusCollectionByName(recordData.collection_name);
+                    if (collectionData) {
+                        setCollection(collectionData);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching record:", error);
@@ -51,7 +57,7 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
         };
 
         fetchRecordData();
-    }, [muragId, getFundusRecord, getFundusRecordImage]);
+    }, [muragId, getFundusRecord, getFundusRecordImage, getFundusCollectionByName]);
 
     const handleOpenModal = () => {
         setModalOpen(true);
@@ -170,11 +176,32 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                     <Typography variant="subtitle1" fontWeight="bold">
                         Additional Details
                     </Typography>
-                    {Object.entries(record.details).map(([key, value]) => (
-                        <Typography key={key}>
-                            <strong>{key}:</strong> {value}
-                        </Typography>
-                    ))}
+                    {(() => {
+                        // Order details based on position from collection field configuration
+                        const detailEntries = Object.entries(record.details);
+                        
+                        if (collection && collection.fields) {
+                            // Create a map of field labels to positions
+                            const fieldPositions = new Map(
+                                collection.fields
+                                    .filter((f): f is FundusRecordField & { position: number } => f.position !== null)
+                                    .map(f => [f.label_en, f.position])
+                            );
+                            
+                            // Sort details by position
+                            detailEntries.sort((a, b) => {
+                                const posA = fieldPositions.get(a[0]) ?? 999;
+                                const posB = fieldPositions.get(b[0]) ?? 999;
+                                return posA - posB;
+                            });
+                        }
+                        
+                        return detailEntries.map(([key, value]) => (
+                            <Typography key={key}>
+                                <strong>{key}:</strong> {value}
+                            </Typography>
+                        ));
+                    })()}
                 </Grid>
 
                 <Grid size={12}>

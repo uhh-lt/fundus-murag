@@ -21,6 +21,14 @@ export const lookupService = {
       throw new Error('Failed to fetch Fundus Collection');
     }
     return response.json();
+  },
+  async getFundusCollectionByName(collectionName: string): Promise<FundusCollection> {
+    const params = new URLSearchParams({ collection_name: collectionName });
+    const response = await fetch(`/api/data/lookup/collections?${params}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch Fundus Collection');
+    }
+    return response.json();
   }
 };
 

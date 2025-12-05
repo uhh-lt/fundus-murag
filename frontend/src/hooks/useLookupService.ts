@@ -49,5 +49,19 @@ export function useAgentService() {
         }
     }, []);
 
-    return { loading, error, getFundusRecord, getFundusRecordImage, getFundusCollection };
+    const getFundusCollectionByName = useCallback(async (collectionName: string): Promise<FundusCollection | undefined> => {
+        setLoading(true);
+        setError(null);
+        try {
+            const collection = await lookupService.getFundusCollectionByName(collectionName);
+            return collection;
+        } catch (err) {
+            setError(err as Error);
+            return undefined;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { loading, error, getFundusRecord, getFundusRecordImage, getFundusCollection, getFundusCollectionByName };
 }

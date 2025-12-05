@@ -311,6 +311,7 @@ def _add_collection_fields(fields_dir: Path, collections_df: pd.DataFrame) -> pd
         "field_name": [],
         "csv_headers": [],
         "labels": [],
+        "positions": [],
         "title_fields": [],
     }
     for k, v in fields_dfs.items():
@@ -328,6 +329,12 @@ def _add_collection_fields(fields_dir: Path, collections_df: pd.DataFrame) -> pd
                     data["labels"].append(
                         [{"de": ld, "en": le} for ld, le in zip(list(v["label_de"]), list(v["label_en"]))]
                     )
+                
+                # Extract position field if it exists
+                if "position" in list(v.columns):
+                    data["positions"].append(v["position"].values)
+                else:
+                    data["positions"].append([None] * len(v))
 
                 title_fields = {}
                 for _, row in v.iterrows():
@@ -359,9 +366,11 @@ def _add_collection_fields(fields_dir: Path, collections_df: pd.DataFrame) -> pd
 
         fns = row["field_name"]
         labels = row["labels"]
+        positions = row["positions"]
         fields = []
-        for fn, label in zip(fns, labels):
+        for fn, label, pos in zip(fns, labels, positions):
             ld, le = label["de"], label["en"]
+            # Skip fields without labels (they should not be displayed)
             if (ld is None or ld == "") and (le is None or le == ""):
                 continue
             fields.append(
@@ -369,6 +378,7 @@ def _add_collection_fields(fields_dir: Path, collections_df: pd.DataFrame) -> pd
                     "name": fn,
                     "label_de": ld,
                     "label_en": le,
+                    "position": int(pos) if pos is not None and not pd.isna(pos) else None,
                 }
             )
         data["fields"].append(fields)
@@ -477,6 +487,24 @@ def _create_records_df(
         [records_df, json_normalize(records_df["details"]).add_prefix("details_")],  # type: ignore
         axis=1,
     ).drop("details", axis=1)
+
+    # Filter details columns to only include fields visible for each collection
+    def filter_details_for_collection(row):
+        collection_name = row["collection_name"]
+        collection = collections_df[collections_df.collection_name == collection_name].iloc[0]
+        visible_field_names = {field["name"] for field in collection.fields}
+        
+        # Create a new row with only visible detail fields
+        filtered_row = {k: v for k, v in row.items() if not k.startswith("details_")}
+        for k, v in row.items():
+            if k.startswith("details_"):
+                field_name = k.replace("details_", "")
+                if field_name in visible_field_names:
+                    filtered_row[k] = v
+        
+        return pd.Series(filtered_row)
+    
+    records_df = records_df.apply(filter_details_for_collection, axis=1)
 
     # Add title
     records_df["title"] = records_df.apply(lambda x: _get_record_title(x, collections_df), axis=1)

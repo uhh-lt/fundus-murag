@@ -290,12 +290,11 @@ class VectorDB(metaclass=SingletonMeta):
             if detail["value"] == "None" or detail["value"] == "":
                 continue
             field_value = detail["value"]
-            if detail["key"] == "ident_nr" or detail["key"] not in fields:
-                field_name = detail["key"]
-            else:
+            # Only include fields that are configured in the collection's fields
+            # This ensures only visible fields are shown
+            if detail["key"] in fields:
                 field_name = fields[detail["key"]]
-
-            resolved[field_name] = field_value
+                resolved[field_name] = field_value
 
         return resolved
 
