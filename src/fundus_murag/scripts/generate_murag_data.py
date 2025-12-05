@@ -489,7 +489,7 @@ def _create_records_df(
     ).drop("details", axis=1)
 
     # Filter details columns to only include fields visible for each collection
-    def filter_details_for_collection(row, collections_df):
+    def filter_details_for_collection(row):
         collection_name = row["collection_name"]
         collection = collections_df[collections_df.collection_name == collection_name].iloc[0]
         visible_field_names = {field["name"] for field in collection.fields}
@@ -504,7 +504,7 @@ def _create_records_df(
         
         return pd.Series(filtered_row)
     
-    records_df = records_df.apply(lambda x: filter_details_for_collection(x, collections_df), axis=1)
+    records_df = records_df.apply(filter_details_for_collection, axis=1)
 
     # Add title
     records_df["title"] = records_df.apply(lambda x: _get_record_title(x, collections_df), axis=1)
