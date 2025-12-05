@@ -18,6 +18,7 @@ export interface FundusRecordField {
   name: string;
   label_en: string;
   label_de: string;
+  position: number | null;
 }
 
 export interface FundusCollection {

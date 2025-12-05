@@ -38,11 +38,13 @@ class FundusRecordField(BaseModel):
         name (str): The name of the field.
         label_en (str): The label of the field in English.
         label_de (str): The label of the field in German.
+        position (int | None): The position/order of the field for display purposes.
     """
 
     name: str
     label_en: str
     label_de: str
+    position: int | None = None
 
 
 class FundusCollection(BaseModel):
