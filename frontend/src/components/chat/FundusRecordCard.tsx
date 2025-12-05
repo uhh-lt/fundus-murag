@@ -185,7 +185,7 @@ const FundusRecordCard: React.FC<FundusRecordCardProps> = ({ muragId }) => {
                             const fieldPositions = new Map(
                                 collection.fields
                                     .filter(f => f.position !== null)
-                                    .map(f => [f.label_en, f.position!])
+                                    .map(f => [f.label_en, f.position as number])
                             );
                             
                             // Sort details by position

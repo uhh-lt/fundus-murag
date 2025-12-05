@@ -440,26 +440,6 @@ def _resolve_image_paths(records_df: pd.DataFrame, record_pix_dir: Path, worker_
     return records_df
 
 
-def _filter_record_details(row, collections_df: pd.DataFrame) -> dict[str, str]:
-    """
-    Filter record details to only include fields that are visible for the collection.
-    Fields are visible if they have a label defined in the collection's field configuration.
-    """
-    collection_name = row["collection_name"]
-    collection = collections_df[collections_df.collection_name == collection_name].iloc[0]
-    visible_field_names = {field["name"] for field in collection.fields}
-    
-    # Extract all detail fields from the row
-    all_details = {
-        k.replace("details_", ""): v for k, v in row.items() if k.startswith("details_") and v is not None and v != ""
-    }
-    
-    # Filter to only include visible fields
-    filtered_details = {k: v for k, v in all_details.items() if k in visible_field_names}
-    
-    return filtered_details
-
-
 def _get_record_title(row, collections_df: pd.DataFrame) -> str:
     collection_name = row["collection_name"]
     collection = collections_df[collections_df.collection_name == collection_name].iloc[0]
